@@ -27,11 +27,11 @@ func newOutputFromBytes(bytes []byte) (*Output, int, error) {
 		return nil, 0, fmt.Errorf("%w < 8 + script", ErrInputTooShort)
 	}
 
-	s := bscript.Script(bytes[offset:totalLength])
+	s := bscript.NewFromBytes(bytes[offset:totalLength])
 
 	return &Output{
 		Satoshis:      binary.LittleEndian.Uint64(bytes[0:8]),
-		LockingScript: &s,
+		LockingScript: s,
 	}, totalLength, nil
 }
 

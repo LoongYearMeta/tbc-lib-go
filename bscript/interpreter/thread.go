@@ -211,9 +211,9 @@ func (t *thread) validPC() error {
 		return errs.NewError(errs.ErrInvalidProgramCounter,
 			"past input scripts %v:%v %v:xxxx", t.scriptIdx, t.scriptOff, len(t.scripts))
 	}
-	if t.scriptOff >= len(*t.scripts[t.scriptIdx]) {
+	if t.scriptOff >= t.scripts[t.scriptIdx].Len() {
 		return errs.NewError(errs.ErrInvalidProgramCounter, "past input scripts %v:%v %v:%04d", t.scriptIdx, t.scriptOff,
-			t.scriptIdx, len(*t.scripts[t.scriptIdx]))
+			t.scriptIdx, t.scripts[t.scriptIdx].Len())
 	}
 	return nil
 }
@@ -306,7 +306,7 @@ func (t *thread) apply(opts *execOpts) error {
 	// result is necessarily an error since the stack would end up being
 	// empty which is equivalent to a false top element.  Thus, just return
 	// the relevant error now as an optimization.
-	if (uscript == nil || len(*uscript) == 0) && (lscript == nil || len(*lscript) == 0) {
+	if (uscript == nil || uscript.Len() == 0) && (lscript == nil || lscript.Len() == 0) {
 		return errs.NewError(errs.ErrEvalFalse, "false stack entry at end of script execution")
 	}
 
@@ -314,19 +314,19 @@ func (t *thread) apply(opts *execOpts) error {
 		return errs.NewError(errs.ErrInvalidFlags, "invalid scriptflag combination")
 	}
 
-	if len(*uscript) > t.cfg.MaxScriptSize() {
+	if uscript.Len() > t.cfg.MaxScriptSize() {
 		return errs.NewError(
 			errs.ErrScriptTooBig,
 			"unlocking script size %d is larger than the max allowed size %d",
-			len(*uscript),
+			uscript.Len(),
 			t.cfg.MaxScriptSize(),
 		)
 	}
-	if len(*lscript) > t.cfg.MaxScriptSize() {
+	if lscript.Len() > t.cfg.MaxScriptSize() {
 		return errs.NewError(
 			errs.ErrScriptTooBig,
 			"locking script size %d is larger than the max allowed size %d",
-			len(*uscript),
+			lscript.Len(),
 			t.cfg.MaxScriptSize(),
 		)
 	}
@@ -348,7 +348,7 @@ func (t *thread) apply(opts *execOpts) error {
 	// Advance the program counter to the public key script if the signature
 	// script is empty since there is nothing to execute for it in that
 	// case.
-	if len(*uscript) == 0 {
+	if uscript.Len() == 0 {
 		t.scriptIdx++
 	}
 
@@ -452,7 +452,7 @@ func (t *thread) Step() (bool, error) {
 			"combined stack size %d > max allowed %d", combinedStackSize, t.cfg.MaxStackSize())
 	}
 
-	if t.scriptOff < len(*t.scripts[t.scriptIdx]) {
+	if t.scriptOff < t.scripts[t.scriptIdx].Len() {
 		return false, nil
 	}
 
@@ -492,7 +492,7 @@ func (t *thread) Step() (bool, error) {
 	}
 
 	// there are zero length scripts in the wild
-	if t.scriptIdx < len(t.scripts) && t.scriptOff >= len(*t.scripts[t.scriptIdx]) {
+	if t.scriptIdx < len(t.scripts) && t.scriptOff >= t.scripts[t.scriptIdx].Len() {
 		t.scriptIdx++
 	}
 
@@ -519,8 +519,9 @@ func (t *thread) SetStack(data [][]byte) {
 // subScript returns the script since the last OP_CODESEPARATOR.
 func (t *thread) subScript() *bscript.Script {
 	ls := t.scripts[t.scriptIdx]
-	a := (*ls)[t.lastCodeSep:]
-	return &a
+	scriptBytes := ls.Bytes()
+	a := scriptBytes[t.lastCodeSep:]
+	return bscript.NewFromBytes(a)
 
 }
 

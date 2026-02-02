@@ -58,11 +58,11 @@ func (t *thread) State() *State {
 	offsetIdx := t.scriptOff
 	if scriptIdx >= len(t.scripts) {
 		scriptIdx = len(t.scripts) - 1
-		offsetIdx = len(*t.scripts[scriptIdx]) - 1
+		offsetIdx = t.scripts[scriptIdx].Len() - 1
 	}
 
-	if offsetIdx >= len(*t.scripts[scriptIdx]) {
-		offsetIdx = len(*t.scripts[scriptIdx]) - 1
+	if offsetIdx >= t.scripts[scriptIdx].Len() {
+		offsetIdx = t.scripts[scriptIdx].Len() - 1
 	}
 	ts := State{
 		DataStack:            make([][]byte, int(t.dstack.Depth())),
@@ -111,9 +111,10 @@ func (t *thread) State() *State {
 	copy(ts.CondStack, t.condStack)
 
 	for i, script := range t.scripts {
-		b := make(bscript.Script, len(*script))
-		copy(b, *script)
-		ts.Scripts[i] = &b
+		scriptBytes := script.Bytes()
+		b := make([]byte, len(scriptBytes))
+		copy(b, scriptBytes)
+		ts.Scripts[i] = bscript.NewFromBytes(b)
 	}
 
 	return &ts

@@ -2,6 +2,7 @@ package bt
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"encoding/hex"
 	"io"
@@ -48,8 +49,14 @@ type Tx struct {
 type Txs []*Tx
 
 // NewTx creates a new transaction object with default values.
+// This matches the behavior of JavaScript's new Transaction() constructor.
 func NewTx() *Tx {
-	return &Tx{Version: 1, LockTime: 0, Inputs: make([]*Input, 0)}
+	return &Tx{
+		Version:  10,                    // Match JavaScript CURRENT_VERSION
+		LockTime: 0,                     // Match JavaScript DEFAULT_NLOCKTIME
+		Inputs:   make([]*Input, 0),     // Match JavaScript inputs = []
+		Outputs:  make([]*Output, 0),    // Match JavaScript outputs = []
+	}
 }
 
 // NewTxFromString takes a toBytesHelper string representation of a bitcoin transaction
@@ -397,7 +404,7 @@ func (tx *Tx) SizeWithTypes() *TxSize {
 	dataLen := 0
 	for _, d := range tx.Outputs {
 		if d.LockingScript.IsData() {
-			dataLen += len(*d.LockingScript)
+			dataLen += d.LockingScript.Len()
 		}
 	}
 	return &TxSize{
@@ -439,7 +446,7 @@ func (tx *Tx) estimatedFinalTx() (*Tx, error) {
 		if !in.PreviousTxScript.IsP2PKH() {
 			return nil, ErrUnsupportedScript
 		}
-		if in.UnlockingScript == nil || len(*in.UnlockingScript) == 0 {
+		if in.UnlockingScript == nil || in.UnlockingScript.Len() == 0 {
 			// nolint:lll // insert dummy p2pkh unlocking script (sig + pubkey)
 			dummyUnlockingScript, _ := hex.DecodeString("4830450221009c13cbcbb16f2cfedc7abf3a4af1c3fe77df1180c0e7eee30d9bcc53ebda39da02207b258005f1bc3cf9dffa06edb358d6db2bcfc87f50516fac8e3f4686fc2a03df412103107feff22788a1fc8357240bf450fd7bca4bd45d5f8bac63818c5a7b67b03876")
 			in.UnlockingScript = bscript.NewFromBytes(dummyUnlockingScript)
@@ -547,4 +554,80 @@ func (tx *Tx) estimateDeficit(fees *FeeQuote) (uint64, error) {
 	}
 
 	return totalOutputSatoshis + expFeesPaid.TotalFeePaid - totalInputSatoshis, nil
+}
+
+// Chainable methods for fluent API (matching JavaScript Transaction().from().to().change().sign() pattern)
+
+// FromChain adds input(s) from UTXO(s) and returns the transaction for chaining.
+// This matches JavaScript's Transaction.prototype.from() behavior.
+// It accepts either a single UTXO or multiple UTXOs.
+// Example: tx.FromChain(utxo1, utxo2, utxo3)
+// If an error occurs, it panics (similar to JavaScript throwing an exception).
+func (tx *Tx) FromChain(utxos ...*UTXO) *Tx {
+	if err := tx.FromUTXOs(utxos...); err != nil {
+		panic(err)
+	}
+	return tx
+}
+
+// FromStringChain adds an input from string parameters and returns the transaction for chaining.
+// This is a convenience method for chaining when you have string-based UTXO information.
+// Example: tx.FromStringChain(prevTxID, vout, lockingScript, satoshis)
+func (tx *Tx) FromStringChain(prevTxID string, vout uint32, lockingScript string, satoshis uint64) *Tx {
+	if err := tx.From(prevTxID, vout, lockingScript, satoshis); err != nil {
+		panic(err)
+	}
+	return tx
+}
+
+// To adds an output to the specified address with the given amount and returns the transaction for chaining.
+// This matches JavaScript's Transaction.prototype.to() behavior.
+// It accepts either a single address/amount pair or a slice of address/amount pairs.
+// If an error occurs, it panics (similar to JavaScript throwing an exception).
+func (tx *Tx) To(address string, amount uint64) *Tx {
+	if err := tx.PayToAddress(address, amount); err != nil {
+		panic(err)
+	}
+	return tx
+}
+
+// ToOutput represents an output destination for ToMultiple method.
+type ToOutput struct {
+	Address string
+	Amount  uint64
+}
+
+// ToMultiple adds multiple outputs from a slice of ToOutput and returns the transaction for chaining.
+// This matches JavaScript's Transaction.prototype.to() behavior when passed an array.
+// Example: tx.ToMultiple([]ToOutput{{Address: "addr1", Amount: 1000}, {Address: "addr2", Amount: 2000}})
+func (tx *Tx) ToMultiple(outputs []ToOutput) *Tx {
+	for _, output := range outputs {
+		if err := tx.PayToAddress(output.Address, output.Amount); err != nil {
+			panic(err)
+		}
+	}
+	return tx
+}
+
+// Change sets the change address and calculates fees, then returns the transaction for chaining.
+// This matches JavaScript's Transaction.prototype.change() behavior.
+// If an error occurs, it panics (similar to JavaScript throwing an exception).
+func (tx *Tx) Change(address string, feeQuote *FeeQuote) *Tx {
+	if feeQuote == nil {
+		feeQuote = NewFeeQuote()
+	}
+	if err := tx.ChangeToAddress(address, feeQuote); err != nil {
+		panic(err)
+	}
+	return tx
+}
+
+// Sign signs the transaction using the provided UnlockerGetter and returns the transaction for chaining.
+// This matches JavaScript's Transaction.prototype.sign() behavior.
+// If an error occurs, it panics (similar to JavaScript throwing an exception).
+func (tx *Tx) Sign(ctx context.Context, unlockerGetter UnlockerGetter) *Tx {
+	if err := tx.FillAllInputs(ctx, unlockerGetter); err != nil {
+		panic(err)
+	}
+	return tx
 }

@@ -135,7 +135,7 @@ func (o *ParsedOpcode) enforceMinimumDataPush() error {
 
 // Parse takes a *bscript.Script and returns a []interpreter.ParsedOp
 func (p *DefaultOpcodeParser) Parse(s *bscript.Script) (ParsedScript, error) {
-	script := *s
+	script := s.Bytes()
 	parsedOps := make([]ParsedOpcode, 0, len(script))
 
 	for i := 0; i < len(script); {
@@ -196,7 +196,7 @@ func (p *DefaultOpcodeParser) Parse(s *bscript.Script) (ParsedScript, error) {
 
 // Parse takes a *bscript.Script and returns a interpreter.ParsedOpcode
 func (p *DefaultOpcodeParser) GetParsedOpcode(i *int, s *bscript.Script) (ParsedOpcode, error) {
-	script := *s
+	script := s.Bytes()
 
 	instruction := script[*i]
 
@@ -254,7 +254,7 @@ func (p *DefaultOpcodeParser) GetParsedOpcode(i *int, s *bscript.Script) (Parsed
 // Unparse reverses the action of Parse and returns the
 // ParsedScript as a *bscript.Script
 func (p *DefaultOpcodeParser) Unparse(pscr ParsedScript) (*bscript.Script, error) {
-	script := make(bscript.Script, 0, len(pscr))
+	script := make([]byte, 0, len(pscr))
 	for _, pop := range pscr {
 		b, err := pop.bytes()
 		if err != nil {
@@ -262,7 +262,7 @@ func (p *DefaultOpcodeParser) Unparse(pscr ParsedScript) (*bscript.Script, error
 		}
 		script = append(script, b...)
 	}
-	return &script, nil
+	return bscript.NewFromBytes(script), nil
 }
 
 // IsPushOnly returns true if the ParsedScript only contains push commands

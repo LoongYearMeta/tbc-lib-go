@@ -63,14 +63,14 @@ func (o *Output) ReadFrom(r io.Reader) (int64, error) {
 // LockingScriptHexString returns the locking script
 // of an output encoded as a hex string.
 func (o *Output) LockingScriptHexString() string {
-	return hex.EncodeToString(*o.LockingScript)
+	return hex.EncodeToString(o.LockingScript.Bytes())
 }
 
 func (o *Output) String() string {
 	return fmt.Sprintf(`value:     %d
 scriptLen: %d
 script:    %s
-`, o.Satoshis, len(*o.LockingScript), o.LockingScript)
+`, o.Satoshis, o.LockingScript.Len(), o.LockingScript)
 }
 
 // Bytes encodes the Output into a byte array.
@@ -80,8 +80,8 @@ func (o *Output) Bytes() []byte {
 
 	h := make([]byte, 0)
 	h = append(h, b...)
-	h = append(h, VarInt(uint64(len(*o.LockingScript))).Bytes()...)
-	h = append(h, *o.LockingScript...)
+	h = append(h, VarInt(uint64(o.LockingScript.Len())).Bytes()...)
+	h = append(h, o.LockingScript.Bytes()...)
 
 	return h
 }
@@ -95,8 +95,8 @@ func (o *Output) BytesForSigHash() []byte {
 	binary.LittleEndian.PutUint64(satoshis, o.Satoshis)
 	buf = append(buf, satoshis...)
 
-	buf = append(buf, VarInt(uint64(len(*o.LockingScript))).Bytes()...)
-	buf = append(buf, *o.LockingScript...)
+	buf = append(buf, VarInt(uint64(o.LockingScript.Len())).Bytes()...)
+	buf = append(buf, o.LockingScript.Bytes()...)
 
 	return buf
 }

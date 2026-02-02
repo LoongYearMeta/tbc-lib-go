@@ -196,8 +196,8 @@ const (
 	OpNOP8                byte = 0xb7 // 183
 	OpNOP9                byte = 0xb8 // 184
 	OpNOP10               byte = 0xb9 // 185
-	OpUNKNOWN186          byte = 0xba // 186
-	OpUNKNOWN187          byte = 0xbb // 187
+	OpPUSHMETA            byte = 0xba // 186
+	OpPARTIALHASH         byte = 0xbb // 187
 	OpUNKNOWN188          byte = 0xbc // 188
 	OpUNKNOWN189          byte = 0xbd // 189
 	OpUNKNOWN190          byte = 0xbe // 190
@@ -460,8 +460,8 @@ var opCodeStrings = map[string]byte{
 	"OP_NOP8":                OpNOP8,
 	"OP_NOP9":                OpNOP9,
 	"OP_NOP10":               OpNOP10,
-	"OP_UNKNOWN186":          OpUNKNOWN186,
-	"OP_UNKNOWN187":          OpUNKNOWN187,
+	"OP_PUSH_META":           OpPUSHMETA,
+	"OP_PARTIAL_HASH":        OpPARTIALHASH,
 	"OP_UNKNOWN188":          OpUNKNOWN188,
 	"OP_UNKNOWN189":          OpUNKNOWN189,
 	"OP_UNKNOWN190":          OpUNKNOWN190,
@@ -719,8 +719,8 @@ var opCodeValues = map[byte]string{
 	OpNOP8:                "OP_NOP8",
 	OpNOP9:                "OP_NOP9",
 	OpNOP10:               "OP_NOP10",
-	OpUNKNOWN186:          "OP_UNKNOWN186",
-	OpUNKNOWN187:          "OP_UNKNOWN187",
+	OpPUSHMETA:            "OP_PUSH_META",
+	OpPARTIALHASH:         "OP_PARTIAL_HASH",
 	OpUNKNOWN188:          "OP_UNKNOWN188",
 	OpUNKNOWN189:          "OP_UNKNOWN189",
 	OpUNKNOWN190:          "OP_UNKNOWN190",

@@ -128,7 +128,7 @@ sequence:     %x
 `,
 		hex.EncodeToString(i.previousTxID),
 		i.PreviousTxOutIndex,
-		len(*i.UnlockingScript),
+		i.UnlockingScript.Len(),
 		i.UnlockingScript,
 		i.SequenceNumber,
 	)
@@ -146,8 +146,8 @@ func (i *Input) Bytes(clear bool) []byte {
 		if i.UnlockingScript == nil {
 			h = append(h, VarInt(0).Bytes()...)
 		} else {
-			h = append(h, VarInt(uint64(len(*i.UnlockingScript))).Bytes()...)
-			h = append(h, *i.UnlockingScript...)
+			h = append(h, VarInt(uint64(i.UnlockingScript.Len())).Bytes()...)
+			h = append(h, i.UnlockingScript.Bytes()...)
 		}
 	}
 

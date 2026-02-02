@@ -112,8 +112,8 @@ func (tx *Tx) CalcInputPreimage(inputNumber uint32, sigHashFlag sighash.Flag) ([
 	buf = append(buf, oi...)
 
 	// scriptCode of the input (serialised as scripts inside CTxOuts)
-	buf = append(buf, VarInt(uint64(len(*in.PreviousTxScript))).Bytes()...)
-	buf = append(buf, *in.PreviousTxScript...)
+	buf = append(buf, VarInt(uint64(in.PreviousTxScript.Len())).Bytes()...)
+	buf = append(buf, in.PreviousTxScript.Bytes()...)
 
 	// value of the output spent by this input (8-byte little endian)
 	sat := make([]byte, 8)
@@ -234,8 +234,8 @@ func (tx *Tx) CalcInputPreimageLegacy(inputNumber uint32, shf sighash.Flag) ([]b
 		binary.LittleEndian.PutUint32(oi, in.PreviousTxOutIndex)
 		buf = append(buf, oi...)
 
-		buf = append(buf, VarInt(uint64(len(*in.PreviousTxScript))).Bytes()...)
-		buf = append(buf, *in.PreviousTxScript...)
+		buf = append(buf, VarInt(uint64(in.PreviousTxScript.Len())).Bytes()...)
+		buf = append(buf, in.PreviousTxScript.Bytes()...)
 
 		sq := make([]byte, 4)
 		binary.LittleEndian.PutUint32(sq, in.SequenceNumber)
@@ -248,8 +248,8 @@ func (tx *Tx) CalcInputPreimageLegacy(inputNumber uint32, shf sighash.Flag) ([]b
 		binary.LittleEndian.PutUint64(st, out.Satoshis)
 		buf = append(buf, st...)
 
-		buf = append(buf, VarInt(uint64(len(*out.LockingScript))).Bytes()...)
-		buf = append(buf, *out.LockingScript...)
+		buf = append(buf, VarInt(uint64(out.LockingScript.Len())).Bytes()...)
+		buf = append(buf, out.LockingScript.Bytes()...)
 	}
 
 	// LockTime

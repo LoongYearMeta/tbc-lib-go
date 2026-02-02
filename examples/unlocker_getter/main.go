@@ -66,7 +66,7 @@ func main() {
 		panic(err)
 	}
 
-	if err = baseTx.Change(changeScript, bt.NewFeeQuote()); err != nil {
+	if err = baseTx.ChangeWithScript(changeScript, bt.NewFeeQuote()); err != nil {
 		panic(err)
 	}
 
@@ -95,7 +95,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := tx.Change(myAccount.createDestination(), bt.NewFeeQuote()); err != nil {
+	if err := tx.ChangeWithScript(myAccount.createDestination(), bt.NewFeeQuote()); err != nil {
 		panic(err)
 	}
 

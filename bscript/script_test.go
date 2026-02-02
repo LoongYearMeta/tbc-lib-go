@@ -27,7 +27,7 @@ func TestNewP2PKHFromPubKeyStr(t *testing.T) {
 	assert.NotNil(t, scriptP2PKH)
 	assert.Equal(t,
 		"76a9144d5d1920331b71735a97a606d9734aed83cb3dfa88ac",
-		hex.EncodeToString(*scriptP2PKH),
+		scriptP2PKH.String(),
 	)
 }
 
@@ -44,7 +44,7 @@ func TestNewP2PKHFromPubKey(t *testing.T) {
 	assert.NotNil(t, scriptP2PKH)
 	assert.Equal(t,
 		"76a9144d5d1920331b71735a97a606d9734aed83cb3dfa88ac",
-		hex.EncodeToString(*scriptP2PKH),
+		scriptP2PKH.String(),
 	)
 }
 
@@ -88,7 +88,7 @@ func TestNewFromHexString(t *testing.T) {
 	assert.NotNil(t, s)
 	assert.Equal(t,
 		"76a914e2a623699e81b291c0327f408fea765d534baa2a88ac",
-		hex.EncodeToString(*s),
+		s.String(),
 	)
 }
 
@@ -130,7 +130,7 @@ func TestNewFromASM(t *testing.T) {
 	assert.NotNil(t, s)
 	assert.Equal(t,
 		"76a914e2a623699e81b291c0327f408fea765d534baa2a88ac",
-		hex.EncodeToString(*s),
+		s.String(),
 	)
 }
 
@@ -240,7 +240,7 @@ func TestScript_PublicKeyHash(t *testing.T) {
 
 func TestErrorIsAppended(t *testing.T) {
 	script, _ := hex.DecodeString("6a0548656c6c6f0548656c6c")
-	s := bscript.Script(script)
+	s := bscript.NewFromBytes(script)
 
 	asm, err := s.ToASM()
 	assert.NoError(t, err)
@@ -356,7 +356,7 @@ func TestScript_Equals(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			assert.Equal(t, test.exp, test.script1.Equals(test.script2))
-			assert.Equal(t, test.exp, test.script1.EqualsBytes(*test.script2))
+			assert.Equal(t, test.exp, test.script1.EqualsBytes(test.script2.Bytes()))
 			assert.Equal(t, test.exp, test.script1.EqualsHex(test.script2.String()))
 		})
 	}

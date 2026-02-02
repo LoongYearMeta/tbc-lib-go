@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha1" //nolint:gosec // OP_SHA1 support requires this
 	"crypto/sha256"
+	"encoding/binary"
 	"hash"
 	"math/big"
 
@@ -240,9 +241,11 @@ var opcodeArray = [256]opcode{
 	bscript.OpNOP9:  {bscript.OpNOP9, "OP_NOP9", 1, opcodeNop},
 	bscript.OpNOP10: {bscript.OpNOP10, "OP_NOP10", 1, opcodeNop},
 
+	// New opcodes.
+	bscript.OpPUSHMETA:    {bscript.OpPUSHMETA, "OP_PUSH_META", 1, opcodePushMeta},
+	bscript.OpPARTIALHASH: {bscript.OpPARTIALHASH, "OP_PARTIAL_HASH", 1, opcodePartialHash},
+
 	// Undefined opcodes.
-	bscript.OpUNKNOWN186: {bscript.OpUNKNOWN186, "OP_UNKNOWN186", 1, opcodeInvalid},
-	bscript.OpUNKNOWN187: {bscript.OpUNKNOWN187, "OP_UNKNOWN187", 1, opcodeInvalid},
 	bscript.OpUNKNOWN188: {bscript.OpUNKNOWN188, "OP_UNKNOWN188", 1, opcodeInvalid},
 	bscript.OpUNKNOWN189: {bscript.OpUNKNOWN189, "OP_UNKNOWN189", 1, opcodeInvalid},
 	bscript.OpUNKNOWN190: {bscript.OpUNKNOWN190, "OP_UNKNOWN190", 1, opcodeInvalid},
@@ -2316,4 +2319,322 @@ func opcodeCheckMultiSigVerify(op *ParsedOpcode, t *thread) error {
 
 func success() errs.Error {
 	return errs.NewError(errs.ErrOK, "success")
+}
+
+// opcodePushMeta pushes transaction metadata onto the stack based on the value
+// on top of the stack.
+//
+// Stack transformation: [... n] -> [... metadata]
+// where n is 1-7:
+//   1: transaction version
+//   2: transaction locktime
+//   3: number of inputs
+//   4: number of outputs
+//   5: hash of all inputs
+//   6: current input data
+//   7: hash of all outputs
+func opcodePushMeta(op *ParsedOpcode, t *thread) error {
+	if t.dstack.Depth() < 1 {
+		return errs.NewError(errs.ErrUnbalancedConditional, "stack empty")
+	}
+
+	buf, err := t.dstack.PopByteArray()
+	if err != nil {
+		return err
+	}
+
+	if len(buf) != 1 || buf[0] < 1 || buf[0] > 7 {
+		return errs.NewError(errs.ErrInvalidStackOperation, "invalid push meta value")
+	}
+
+	var result []byte
+	switch buf[0] {
+	case 1: // transaction version
+		result = make([]byte, 4)
+		result[0] = byte(t.tx.Version)
+		result[1] = byte(t.tx.Version >> 8)
+		result[2] = byte(t.tx.Version >> 16)
+		result[3] = byte(t.tx.Version >> 24)
+	case 2: // transaction locktime
+		result = make([]byte, 4)
+		result[0] = byte(t.tx.LockTime)
+		result[1] = byte(t.tx.LockTime >> 8)
+		result[2] = byte(t.tx.LockTime >> 16)
+		result[3] = byte(t.tx.LockTime >> 24)
+	case 3: // number of inputs
+		result = make([]byte, 4)
+		inputCount := len(t.tx.Inputs)
+		result[0] = byte(inputCount)
+		result[1] = byte(inputCount >> 8)
+		result[2] = byte(inputCount >> 16)
+		result[3] = byte(inputCount >> 24)
+	case 4: // number of outputs
+		result = make([]byte, 4)
+		outputCount := len(t.tx.Outputs)
+		result[0] = byte(outputCount)
+		result[1] = byte(outputCount >> 8)
+		result[2] = byte(outputCount >> 16)
+		result[3] = byte(outputCount >> 24)
+	case 5: // hash of all inputs
+		var inputsCombined []byte
+		for _, input := range t.tx.Inputs {
+			// Reverse prevTxId
+			prevTxIDBytes := input.PreviousTxID()
+			prevTxID := make([]byte, len(prevTxIDBytes))
+			copy(prevTxID, prevTxIDBytes)
+			for i := 0; i < len(prevTxID)/2; i++ {
+				prevTxID[i], prevTxID[len(prevTxID)-1-i] = prevTxID[len(prevTxID)-1-i], prevTxID[i]
+			}
+			inputsCombined = append(inputsCombined, prevTxID...)
+
+			// Output index
+			outputIndex := make([]byte, 4)
+			outputIndex[0] = byte(input.PreviousTxOutIndex)
+			outputIndex[1] = byte(input.PreviousTxOutIndex >> 8)
+			outputIndex[2] = byte(input.PreviousTxOutIndex >> 16)
+			outputIndex[3] = byte(input.PreviousTxOutIndex >> 24)
+			inputsCombined = append(inputsCombined, outputIndex...)
+
+			// Sequence number
+			sequence := make([]byte, 4)
+			sequence[0] = byte(input.SequenceNumber)
+			sequence[1] = byte(input.SequenceNumber >> 8)
+			sequence[2] = byte(input.SequenceNumber >> 16)
+			sequence[3] = byte(input.SequenceNumber >> 24)
+			inputsCombined = append(inputsCombined, sequence...)
+		}
+		hash := sha256.Sum256(inputsCombined)
+		result = hash[:]
+	case 6: // current input data
+		input := t.tx.Inputs[t.inputIdx]
+		// Reverse prevTxId
+		prevTxIDBytes := input.PreviousTxID()
+		prevTxID := make([]byte, len(prevTxIDBytes))
+		copy(prevTxID, prevTxIDBytes)
+		for i := 0; i < len(prevTxID)/2; i++ {
+			prevTxID[i], prevTxID[len(prevTxID)-1-i] = prevTxID[len(prevTxID)-1-i], prevTxID[i]
+		}
+		result = append(result, prevTxID...)
+
+		// Output index
+		outputIndex := make([]byte, 4)
+		outputIndex[0] = byte(input.PreviousTxOutIndex)
+		outputIndex[1] = byte(input.PreviousTxOutIndex >> 8)
+		outputIndex[2] = byte(input.PreviousTxOutIndex >> 16)
+		outputIndex[3] = byte(input.PreviousTxOutIndex >> 24)
+		result = append(result, outputIndex...)
+
+		// Sequence number
+		sequence := make([]byte, 4)
+		sequence[0] = byte(input.SequenceNumber)
+		sequence[1] = byte(input.SequenceNumber >> 8)
+		sequence[2] = byte(input.SequenceNumber >> 16)
+		sequence[3] = byte(input.SequenceNumber >> 24)
+		result = append(result, sequence...)
+	case 7: // hash of all outputs
+		var outputsCombined []byte
+		for _, output := range t.tx.Outputs {
+			// Satoshis (8 bytes, little-endian)
+			satoshis := make([]byte, 8)
+			satoshisValue := output.Satoshis
+			for i := 0; i < 8; i++ {
+				satoshis[i] = byte(satoshisValue)
+				satoshisValue >>= 8
+			}
+			outputsCombined = append(outputsCombined, satoshis...)
+
+			// Script hash
+			scriptBytes := output.LockingScript.Bytes()
+			scriptHash := sha256.Sum256(scriptBytes)
+			outputsCombined = append(outputsCombined, scriptHash[:]...)
+		}
+		hash := sha256.Sum256(outputsCombined)
+		result = hash[:]
+	default:
+		return errs.NewError(errs.ErrInvalidStackOperation, "invalid push meta value")
+	}
+
+	t.dstack.PushByteArray(result)
+	return nil
+}
+
+// opcodePartialHash performs a partial SHA256 hash operation.
+//
+// Stack transformation: [... data partialHash completeSize] -> [... hash]
+func opcodePartialHash(op *ParsedOpcode, t *thread) error {
+	if t.dstack.Depth() < 3 {
+		return errs.NewError(errs.ErrInvalidStackOperation, "stack has less than 3 items")
+	}
+
+	bufCompleteSize, err := t.dstack.PopByteArray()
+	if err != nil {
+		return err
+	}
+
+	bufPartialHash, err := t.dstack.PopByteArray()
+	if err != nil {
+		return err
+	}
+
+	bufData, err := t.dstack.PopByteArray()
+	if err != nil {
+		return err
+	}
+
+	// Validate partial hash length (must be 0 or 32)
+	if len(bufPartialHash) != 0 && len(bufPartialHash) != 32 {
+		return errs.NewError(errs.ErrInvalidStackOperation, "partial hash must be 0 or 32 bytes")
+	}
+
+	// Calculate complete size from little-endian buffer
+	completeSize := uint64(0)
+	for i, b := range bufCompleteSize {
+		completeSize |= uint64(b) << (i * 8)
+	}
+
+	// Perform partial hash
+	result, err := partialSHA256(bufData, bufPartialHash, completeSize)
+	if err != nil {
+		return errs.NewError(errs.ErrInvalidStackOperation, "partial hash calculation failed: %v", err)
+	}
+
+	t.dstack.PushByteArray(result)
+	return nil
+}
+
+// partialSHA256 performs a partial SHA256 hash calculation.
+// This is used for OP_PARTIAL_HASH opcode.
+// m: the message data
+// h: the partial hash (32 bytes or empty)
+// l: the complete size in bytes (little-endian from stack)
+func partialSHA256(m []byte, h []byte, l uint64) ([]byte, error) {
+	// Convert complete size from bytes to bits
+	completeSizeBits := l * 8
+	remainLengthBits := uint64(len(m)) * 8
+
+	// Initialize hash state
+	var hashState [8]uint32
+	if len(h) == 32 {
+		// Use provided hash state (big-endian)
+		for i := 0; i < 8; i++ {
+			hashState[i] = binary.BigEndian.Uint32(h[i*4 : (i+1)*4])
+		}
+	} else {
+		// Use default SHA256 initial hash values
+		hashState = [8]uint32{
+			0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+			0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+		}
+	}
+
+	// Convert message to 32-bit words (big-endian)
+	// Calculate required size: need space for message + padding + length (64 bits = 2 words)
+	requiredWords := int((remainLengthBits+64+511)/512) * 16
+	if requiredWords < (len(m)+3)/4+2 {
+		requiredWords = (len(m)+3)/4 + 2
+	}
+	msgWords := make([]uint32, requiredWords)
+	
+	// Convert message bytes to words (big-endian)
+	for i := 0; i < len(m); i++ {
+		wordIdx := i / 4
+		byteIdx := i % 4
+		msgWords[wordIdx] |= uint32(m[i]) << (24 - byteIdx*8)
+	}
+
+	// Append padding: 0x80 bit at remainLengthBits position
+	paddingWordIdx := int(remainLengthBits / 32)
+	paddingBitPos := int(remainLengthBits % 32)
+	msgWords[paddingWordIdx] |= 0x80 << (24 - paddingBitPos)
+
+	// Set length field at the end (completeSizeBits in bits)
+	// Position: ((remainLengthBits + 64) >> 9) << 4) + 15
+	lengthWordIdx := int(((remainLengthBits+64)>>9)<<4) + 15
+	if lengthWordIdx >= len(msgWords) {
+		extended := make([]uint32, lengthWordIdx+1)
+		copy(extended, msgWords)
+		msgWords = extended
+	}
+	// SHA256 uses 64-bit length, but we only use lower 32 bits for Bitcoin
+	msgWords[lengthWordIdx] = uint32(completeSizeBits)
+
+	// SHA256 constants
+	k := []uint32{
+		0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+		0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+		0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+		0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+		0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+		0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+		0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+		0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+		0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+		0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+		0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+		0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+		0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+		0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+		0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+		0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+	}
+
+	// Process message in 512-bit (16 word) chunks
+	for i := 0; i < len(msgWords); i += 16 {
+		// Prepare message schedule
+		w := make([]uint32, 64)
+		for j := 0; j < 16 && i+j < len(msgWords); j++ {
+			w[j] = msgWords[i+j]
+		}
+		for j := 16; j < 64; j++ {
+			s0 := rightRotate(w[j-15], 7) ^ rightRotate(w[j-15], 18) ^ (w[j-15] >> 3)
+			s1 := rightRotate(w[j-2], 17) ^ rightRotate(w[j-2], 19) ^ (w[j-2] >> 10)
+			w[j] = w[j-16] + s0 + w[j-7] + s1
+		}
+
+		// Initialize working variables
+		a, b, c, d, e, f, g, h := hashState[0], hashState[1], hashState[2], hashState[3],
+			hashState[4], hashState[5], hashState[6], hashState[7]
+
+		// Main loop
+		for j := 0; j < 64; j++ {
+			S1 := rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)
+			ch := (e & f) ^ (^e & g)
+			temp1 := h + S1 + ch + k[j] + w[j]
+			S0 := rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)
+			maj := (a & b) ^ (a & c) ^ (b & c)
+			temp2 := S0 + maj
+
+			h = g
+			g = f
+			f = e
+			e = d + temp1
+			d = c
+			c = b
+			b = a
+			a = temp1 + temp2
+		}
+
+		// Add compressed chunk to hash state
+		hashState[0] += a
+		hashState[1] += b
+		hashState[2] += c
+		hashState[3] += d
+		hashState[4] += e
+		hashState[5] += f
+		hashState[6] += g
+		hashState[7] += h
+	}
+
+	// Convert hash state to bytes (big-endian)
+	result := make([]byte, 32)
+	for i := 0; i < 8; i++ {
+		binary.BigEndian.PutUint32(result[i*4:(i+1)*4], hashState[i])
+	}
+
+	return result, nil
+}
+
+// rightRotate performs a right rotation of a 32-bit value
+func rightRotate(value uint32, bits uint) uint32 {
+	return (value >> bits) | (value << (32 - bits))
 }
