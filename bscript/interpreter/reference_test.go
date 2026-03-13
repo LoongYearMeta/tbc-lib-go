@@ -81,7 +81,7 @@ func parseShortForm(script string) (*bscript.Script, error) {
 	script = strings.Replace(script, "\t", " ", -1)
 	tokens := strings.Split(script, " ")
 
-	var scr bscript.Script
+	var scr []byte
 	for _, tok := range tokens {
 		if len(tok) == 0 {
 			continue
@@ -89,12 +89,16 @@ func parseShortForm(script string) (*bscript.Script, error) {
 		// if parses as a plain number
 		if num, err := strconv.ParseInt(tok, 10, 64); err == nil {
 			if num == 0 {
-				scr.AppendOpcodes(bscript.Op0)
+				scr = append(scr, bscript.Op0)
 			} else if num == -1 || (1 <= num && num <= 16) {
-				scr.AppendOpcodes((bscript.Op1 - 1) + byte(num))
+				scr = append(scr, (bscript.Op1-1)+byte(num))
 			} else {
 				n := &scriptNumber{val: big.NewInt(num)}
-				scr.AppendPushData(n.Bytes())
+				script := bscript.NewFromBytes(scr)
+				if err := script.AppendPushData(n.Bytes()); err != nil {
+					return nil, err
+				}
+				scr = script.Bytes()
 			}
 			continue
 		} else if bts, err := parseHex(tok); err == nil {
@@ -104,7 +108,11 @@ func parseShortForm(script string) (*bscript.Script, error) {
 			scr = append(scr, bts...)
 		} else if len(tok) >= 2 &&
 			tok[0] == '\'' && tok[len(tok)-1] == '\'' {
-			scr.AppendPushData([]byte(tok[1 : len(tok)-1]))
+			script := bscript.NewFromBytes(scr)
+			if err := script.AppendPushData([]byte(tok[1 : len(tok)-1])); err != nil {
+				return nil, err
+			}
+			scr = script.Bytes()
 		} else if opcode, ok := shortFormOps[tok]; ok {
 			scr = append(scr, opcode)
 		} else {
@@ -113,7 +121,7 @@ func parseShortForm(script string) (*bscript.Script, error) {
 
 	}
 
-	return &scr, nil
+	return bscript.NewFromBytes(scr), nil
 }
 
 // scriptTestName returns a descriptive test name for the given reference script

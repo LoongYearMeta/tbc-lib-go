@@ -122,16 +122,16 @@ func TestCheckErrorCondition(t *testing.T) {
 		tx:            tx,
 	})
 	if err != nil {
-		t.Errorf("failed to configure thread %w", err)
+		t.Errorf("failed to configure thread %v", err)
 	}
 
 	var done bool
-	for i := 0; i < len(*lscript); i++ {
+	for i := 0; i < lscript.Len(); i++ {
 		done, err = vm.Step()
 		if err != nil {
 			t.Fatalf("failed to step %dth time: %v", i, err)
 		}
-		if done && i != len(*lscript)-1 {
+		if done && i != lscript.Len()-1 {
 			t.Fatalf("finshed early on %dth time", i)
 		}
 	}

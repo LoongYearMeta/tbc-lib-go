@@ -11,7 +11,6 @@ import (
 )
 
 func TestDebugger_BeforeExecute(t *testing.T) {
-	t.Parallel()
 
 	tests := map[string]struct {
 		lockingScriptHex   string
@@ -40,6 +39,7 @@ func TestDebugger_BeforeExecute(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -71,8 +71,6 @@ func TestDebugger_BeforeExecute(t *testing.T) {
 }
 
 func TestDebugger_BeforeStep(t *testing.T) {
-	t.Parallel()
-
 	type stateHistory struct {
 		dstack  [][]string
 		astack  [][]string
@@ -136,6 +134,7 @@ func TestDebugger_BeforeStep(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -172,8 +171,6 @@ func TestDebugger_BeforeStep(t *testing.T) {
 }
 
 func TestDebugger_AfterStep(t *testing.T) {
-	t.Parallel()
-
 	type stateHistory struct {
 		dstack  [][]string
 		astack  [][]string
@@ -236,6 +233,7 @@ func TestDebugger_AfterStep(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -272,8 +270,6 @@ func TestDebugger_AfterStep(t *testing.T) {
 }
 
 func TestDebugger_BeforeExecuteOpcode(t *testing.T) {
-	t.Parallel()
-
 	type stateHistory struct {
 		dstack  [][]string
 		astack  [][]string
@@ -337,6 +333,7 @@ func TestDebugger_BeforeExecuteOpcode(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -373,8 +370,6 @@ func TestDebugger_BeforeExecuteOpcode(t *testing.T) {
 }
 
 func TestDebugger_AfterExecuteOpcode(t *testing.T) {
-	t.Parallel()
-
 	type stateHistory struct {
 		dstack  [][]string
 		astack  [][]string
@@ -437,6 +432,7 @@ func TestDebugger_AfterExecuteOpcode(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -473,8 +469,6 @@ func TestDebugger_AfterExecuteOpcode(t *testing.T) {
 }
 
 func TestDebugger_BeforeScriptChange(t *testing.T) {
-	t.Parallel()
-
 	type stateHistory struct {
 		dstack  [][]string
 		astack  [][]string
@@ -520,6 +514,7 @@ func TestDebugger_BeforeScriptChange(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -560,8 +555,6 @@ func TestDebugger_BeforeScriptChange(t *testing.T) {
 }
 
 func TestDebugger_AfterScriptChange(t *testing.T) {
-	t.Parallel()
-
 	type stateHistory struct {
 		dstack  [][]string
 		astack  [][]string
@@ -607,6 +600,7 @@ func TestDebugger_AfterScriptChange(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -647,8 +641,6 @@ func TestDebugger_AfterScriptChange(t *testing.T) {
 }
 
 func TestDebugger_AfterExecution(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		lockingScriptHex   string
 		unlockingScriptHex string
@@ -676,6 +668,7 @@ func TestDebugger_AfterExecution(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -707,8 +700,6 @@ func TestDebugger_AfterExecution(t *testing.T) {
 }
 
 func TestDebugger_AfterError(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		lockingScriptHex   string
 		unlockingScriptHex string
@@ -734,6 +725,7 @@ func TestDebugger_AfterError(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -770,8 +762,6 @@ func TestDebugger_AfterError(t *testing.T) {
 }
 
 func TestDebugger_AfterSuccess(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		lockingScriptHex   string
 		unlockingScriptHex string
@@ -800,6 +790,7 @@ func TestDebugger_AfterSuccess(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -836,8 +827,6 @@ func TestDebugger_AfterSuccess(t *testing.T) {
 }
 
 func TestDebugger_BeforeStackPush(t *testing.T) {
-	t.Parallel()
-
 	type stateHistory struct {
 		dstack  [][]string
 		astack  [][]string
@@ -906,6 +895,7 @@ func TestDebugger_BeforeStackPush(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -945,8 +935,6 @@ func TestDebugger_BeforeStackPush(t *testing.T) {
 }
 
 func TestDebugger_AfterStackPush(t *testing.T) {
-	t.Parallel()
-
 	type stateHistory struct {
 		dstack  [][]string
 		astack  [][]string
@@ -1015,6 +1003,7 @@ func TestDebugger_AfterStackPush(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -1054,8 +1043,6 @@ func TestDebugger_AfterStackPush(t *testing.T) {
 }
 
 func TestDebugger_BeforeStackPop(t *testing.T) {
-	t.Parallel()
-
 	type stateHistory struct {
 		dstack  [][]string
 		astack  [][]string
@@ -1116,6 +1103,7 @@ func TestDebugger_BeforeStackPop(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)
@@ -1152,8 +1140,6 @@ func TestDebugger_BeforeStackPop(t *testing.T) {
 }
 
 func TestDebugger_AfterStackPop(t *testing.T) {
-	t.Parallel()
-
 	type stateHistory struct {
 		dstack  [][]string
 		astack  [][]string
@@ -1219,6 +1205,7 @@ func TestDebugger_AfterStackPop(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			lscript, err := bscript.NewFromHexString(test.lockingScriptHex)
 			assert.NoError(t, err)

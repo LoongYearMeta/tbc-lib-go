@@ -121,3 +121,69 @@ func (v VarInt) UpperLimitInc() int {
 
 	return 0
 }
+
+// ========== 编码工具函数（与 JS BufferReader/BufferWriter 对齐） ==========
+
+// ReadVarBytes 读取长度前缀的数据（等价 JS 的 BufferReader.readVarLengthBuffer）
+// 先读取 varint 作为长度，再读取对应长度的数据
+func ReadVarBytes(r io.Reader, maxLen uint64) ([]byte, error) {
+	var length VarInt
+	n64, err := length.ReadFrom(r)
+	if err != nil {
+		return nil, errors.Wrap(err, "read varint length failed")
+	}
+	if n64 == 0 {
+		return nil, errors.New("invalid varint length: 0")
+	}
+
+	lenVal := uint64(length)
+	if lenVal > maxLen {
+		return nil, errors.Errorf("data length %d exceeds max %d", lenVal, maxLen)
+	}
+
+	data := make([]byte, lenVal)
+	n, err := io.ReadFull(r, data)
+	if err != nil {
+		return nil, errors.Wrapf(err, "read data failed: expected %d bytes, got %d", lenVal, n)
+	}
+
+	if uint64(n) != lenVal {
+		return nil, errors.Errorf("invalid length: expected %d, read %d", lenVal, n)
+	}
+
+	return data, nil
+}
+
+// WriteVarBytes 写入长度前缀的数据（等价 JS 的 BufferWriter.writeVarLengthBuffer）
+// 先写入 varint 长度，再写入数据
+func WriteVarBytes(w io.Writer, data []byte) error {
+	if data == nil {
+		return errors.New("data is nil")
+	}
+
+	length := VarInt(len(data))
+	lengthBytes := length.Bytes()
+	
+	if _, err := w.Write(lengthBytes); err != nil {
+		return errors.Wrap(err, "write varint length failed")
+	}
+
+	if _, err := w.Write(data); err != nil {
+		return errors.Wrap(err, "write data failed")
+	}
+
+	return nil
+}
+
+// IsHexString 检查字符串是否为有效的十六进制字符串（等价 JS 的 is-hex）
+func IsHexString(s string) bool {
+	if len(s)%2 != 0 {
+		return false
+	}
+	for _, c := range s {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
+}

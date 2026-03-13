@@ -12,6 +12,9 @@ import (
 	"github.com/sCrypt-Inc/go-bt/v2/bscript"
 )
 
+// defaultHTTPClient 默认 HTTP 客户端，带超时
+var defaultHTTPClient = &http.Client{Timeout: 30 * time.Second}
+
 // 对应 tbc-contract/lib/api/api.ts 的基础 URL 配置
 const (
 	mainnetAPIURL = "https://api.turingbitchain.io/api/tbc/"
@@ -62,11 +65,38 @@ type txrawResponse struct {
 type broadcastResponse struct {
 	Code    string `json:"code"`
 	Data    struct {
-		TxID  string `json:"txid"`
-		Error string `json:"error"`
+		TxID    string `json:"txid"`
+		Error   string `json:"error"`
+		Success int    `json:"success"`
+		Failed  int    `json:"failed"`
 	} `json:"data"`
 	Message string `json:"message"`
 	Error   string `json:"error"`
+}
+
+// BlockHeaderInfo 区块头信息，对应 JS API 返回格式
+type BlockHeaderInfo struct {
+	Hash             string `json:"hash"`
+	Confirmations    int    `json:"confirmations"`
+	Height           int    `json:"height"`
+	Version          int    `json:"version"`
+	VersionHex       string `json:"versionHex"`
+	MerkleRoot       string `json:"merkleroot"`
+	Time             int64  `json:"time"`
+	Nonce            uint32 `json:"nonce"`
+	Bits             string `json:"bits"`
+	Difficulty       string `json:"difficulty"`
+	PreviousBlockHash string `json:"previoushash"`
+	NextBlockHash    string `json:"nexthash"`
+}
+
+type blockHeadersResponse struct {
+	Data []BlockHeaderInfo `json:"data"`
+}
+
+// BroadcastTXsRequestItem 批量广播时单条请求格式
+type BroadcastTXsRequestItem struct {
+	TxRaw string `json:"txraw"`
 }
 
 // ----- 导出函数：与 TS API 类似的接口 -----
@@ -77,7 +107,7 @@ func GetTBCBalance(address, network string) (uint64, error) {
 	baseURL := getBaseURL(network)
 	url := fmt.Sprintf("%sbalance/address/%s", baseURL, address)
 
-	resp, err := http.Get(url)
+	resp, err := defaultHTTPClient.Get(url)
 	if err != nil {
 		return 0, fmt.Errorf("请求余额接口失败: %w", err)
 	}
@@ -104,7 +134,7 @@ func FetchUTXO(address string, amountTBC float64, network string) (*UTXO, error)
 	url := fmt.Sprintf("%sutxo/address/%s", baseURL, address)
 	fmt.Printf("[Go FetchUTXO] network=%s url=%s\n", network, url)
 
-	resp, err := http.Get(url)
+	resp, err := defaultHTTPClient.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("请求 UTXO 接口失败: %w", err)
 	}
@@ -173,8 +203,7 @@ func BroadcastTXRaw(txraw, network string) (string, error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := defaultHTTPClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("HTTP 请求失败: %w", err)
 	}
@@ -214,7 +243,7 @@ func FetchTXRaw(txid, network string) (*Tx, error) {
 	baseURL := getBaseURL(network)
 	url := fmt.Sprintf("%stxraw/txid/%s", baseURL, txid)
 
-	resp, err := http.Get(url)
+	resp, err := defaultHTTPClient.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("请求 TXRaw 接口失败: %w", err)
 	}
@@ -241,7 +270,7 @@ func IsTxOnChain(txid, network string) (bool, error) {
 	baseURL := getBaseURL(network)
 	url := fmt.Sprintf("%stxraw/txid/%s", baseURL, txid)
 
-	resp, err := http.Get(url)
+	resp, err := defaultHTTPClient.Get(url)
 	if err != nil {
 		return false, fmt.Errorf("请求 TXRaw 接口失败: %w", err)
 	}
@@ -260,6 +289,146 @@ func IsTxOnChain(txid, network string) (bool, error) {
 	// 其他状态码，返回错误
 	body, _ := io.ReadAll(resp.Body)
 	return false, fmt.Errorf("TXRaw 接口返回状态码 %d: %s", resp.StatusCode, string(body))
+}
+
+// FetchUTXOs 获取指定地址的所有 UTXO
+// 对应 JS API.fetchUTXOs(address, network)
+func FetchUTXOs(address, network string) (UTXOs, error) {
+	baseURL := getBaseURL(network)
+	url := fmt.Sprintf("%sutxo/address/%s", baseURL, address)
+
+	resp, err := defaultHTTPClient.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("请求 UTXO 接口失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("UTXO 接口返回状态码 %d: %s", resp.StatusCode, string(body))
+	}
+
+	var ur utxoListResponse
+	if err := json.NewDecoder(resp.Body).Decode(&ur); err != nil {
+		return nil, fmt.Errorf("解析 UTXO 响应失败: %w", err)
+	}
+
+	if len(ur.Data.UTXOs) == 0 {
+		return nil, fmt.Errorf("The balance in the account is zero.")
+	}
+
+	lockingScript, err := bscript.NewP2PKHFromAddress(address)
+	if err != nil {
+		return nil, fmt.Errorf("创建锁定脚本失败: %w", err)
+	}
+
+	result := make(UTXOs, 0, len(ur.Data.UTXOs))
+	for i := range ur.Data.UTXOs {
+		txidBytes, err := hex.DecodeString(ur.Data.UTXOs[i].TxID)
+		if err != nil {
+			return nil, fmt.Errorf("解码 txid 失败: %w", err)
+		}
+		result = append(result, &UTXO{
+			TxID:          txidBytes,
+			Vout:          uint32(ur.Data.UTXOs[i].Index),
+			Satoshis:      ur.Data.UTXOs[i].Value,
+			LockingScript: lockingScript,
+		})
+	}
+	return result, nil
+}
+
+// GetUTXOs 获取地址 UTXO 列表，并校验总余额是否满足 amountTBC
+// 对应 JS API.getUTXOs(address, amount_tbc, network)
+func GetUTXOs(address string, amountTBC float64, network string) (UTXOs, error) {
+	utxos, err := FetchUTXOs(address, network)
+	if err != nil {
+		return nil, err
+	}
+	amountSatoshis := uint64(amountTBC * 1e6)
+	var total uint64
+	for _, u := range utxos {
+		total += u.Satoshis
+	}
+	if total < amountSatoshis {
+		return nil, fmt.Errorf("Insufficient tbc balance")
+	}
+	return utxos, nil
+}
+
+// BroadcastTXsRaw 批量广播原始交易
+// txrawList: [{TxRaw: "hex"}...]，对应 JS API.broadcastTXsraw
+// 返回 success 数量、failed 数量、错误
+func BroadcastTXsRaw(txrawList []BroadcastTXsRequestItem, network string) (success, failed int, err error) {
+	baseURL := getBaseURL(network)
+	url := baseURL + "broadcasttxs"
+
+	jsonData, err := json.Marshal(txrawList)
+	if err != nil {
+		return 0, 0, fmt.Errorf("序列化请求体失败: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return 0, 0, fmt.Errorf("创建请求失败: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := defaultHTTPClient.Do(req)
+	if err != nil {
+		return 0, 0, fmt.Errorf("HTTP 请求失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, 0, fmt.Errorf("读取响应失败: %w", err)
+	}
+
+	var br broadcastResponse
+	if err := json.Unmarshal(body, &br); err != nil {
+		return 0, 0, fmt.Errorf("解析广播响应失败: %w, 内容: %s", err, string(body))
+	}
+
+	if br.Code == "200" {
+		return br.Data.Success, br.Data.Failed, nil
+	}
+	if br.Code == "400" && (bytes.Contains(body, []byte("partial failure")) || br.Data.Success > 0) {
+		return br.Data.Success, br.Data.Failed, nil
+	}
+	errMsg := br.Message
+	if br.Error != "" {
+		errMsg = br.Error
+	}
+	if errMsg == "" {
+		errMsg = "Broadcast failed"
+	}
+	return 0, 0, fmt.Errorf("%s", errMsg)
+}
+
+// FetchBlockHeaders 拉取最近区块头
+// 对应 JS API.fetchBlockHeaders(network)
+// start=0, end=1 表示拉取 1 个区块
+func FetchBlockHeaders(network string) ([]BlockHeaderInfo, error) {
+	baseURL := getBaseURL(network)
+	url := fmt.Sprintf("%srecentblocks/start/0/end/1", baseURL)
+
+	resp, err := defaultHTTPClient.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("请求区块头接口失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("Failed to fetch block headers: %s", string(body))
+	}
+
+	var r blockHeadersResponse
+	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
+		return nil, fmt.Errorf("解析区块头响应失败: %w", err)
+	}
+	return r.Data, nil
 }
 
 

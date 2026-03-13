@@ -3,6 +3,7 @@ module github.com/sCrypt-Inc/go-bt/v2
 go 1.17
 
 require (
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/libsv/go-bk v0.1.6
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.4

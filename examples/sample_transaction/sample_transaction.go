@@ -22,7 +22,7 @@ const (
 )
 
 func main() {
-	fmt.Println("=== TBC Transaction 构建和广播测试程序 ===\n")
+	fmt.Println("=== TBC Transaction 构建和广播测试程序 ===")
 
 	// ========= 0. 显式设置网络 =========
 	network := NetworkTestnet // 可选: NetworkTestnet 或 NetworkMainnet
@@ -154,10 +154,10 @@ func main() {
 
 	// ========= 8. 检查交易是否在链上 =========
 	fmt.Println("\n检查交易是否在链上...")
-	
+
 	// 等待几秒让交易被处理
 	time.Sleep(3 * time.Second)
-	
+
 	isOnChain, err := bt.IsTxOnChain(txid, network)
 	if err != nil {
 		log.Printf("⚠️  检查交易状态失败: %v", err)
@@ -195,7 +195,6 @@ func verifyWithInterpreter(tx *bt.Tx, utxo *bt.UTXO) error {
 	)
 }
 
-
 // mustDecodeHex 辅助函数：解码十六进制字符串
 func mustDecodeHex(s string) []byte {
 	b, err := hex.DecodeString(s)
@@ -213,4 +212,3 @@ func mustLockingScript(hexStr string) *bscript.Script {
 	}
 	return bscript.NewFromBytes(b)
 }
-

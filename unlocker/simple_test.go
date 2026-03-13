@@ -100,7 +100,7 @@ func TestLocalUnlocker_ValidSignature(t *testing.T) {
 
 			assert.NoError(t, tx.InsertInputUnlockingScript(0, uscript))
 
-			parts, err := bscript.DecodeParts(*tx.Inputs[0].UnlockingScript)
+			parts, err := bscript.DecodeParts(tx.Inputs[0].UnlockingScript.Bytes())
 			assert.NoError(t, err)
 
 			sigBytes := parts[0]

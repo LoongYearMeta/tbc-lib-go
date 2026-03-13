@@ -1,130 +1,104 @@
-package bt_test
+package bt
 
 import (
 	"bytes"
-	"encoding/binary"
+	"io"
 	"testing"
-
-	"github.com/sCrypt-Inc/go-bt/v2"
-	"github.com/stretchr/testify/assert"
 )
 
-func convertIntToBytes(int uint64) []byte {
-	buf := new(bytes.Buffer)
-	if err := binary.Write(buf, binary.LittleEndian, int); err != nil {
-		return nil
-	}
-	return buf.Bytes()
-}
+func TestReadVarBytes(t *testing.T) {
+	// 准备测试数据：varint(5) + "hello"
+	data := []byte{0x05, 'h', 'e', 'l', 'l', 'o'}
+	r := bytes.NewReader(data)
 
-func TestDecodeVarInt(t *testing.T) {
-	t.Parallel()
-
-	var tests = []struct {
-		testName       string
-		input          []byte
-		expectedResult uint64
-		expectedSize   int
-	}{
-		{"0xff", convertIntToBytes(0xff), 0, 9},
-		{"0xfe", convertIntToBytes(0xfe), 0, 5},
-		{"0xfd", convertIntToBytes(0xfd), 0, 3},
-		{"1", convertIntToBytes(1), 1, 1},
+	result, err := ReadVarBytes(r, 100)
+	if err != nil {
+		t.Fatalf("ReadVarBytes failed: %v", err)
 	}
 
-	for _, test := range tests {
-		t.Run(test.testName, func(t *testing.T) {
-			r, s := bt.NewVarIntFromBytes(test.input)
-			assert.Equal(t, test.expectedResult, uint64(r))
-			assert.Equal(t, test.expectedSize, s)
-		})
+	expected := []byte("hello")
+	if !bytes.Equal(result, expected) {
+		t.Errorf("ReadVarBytes = %q, expected %q", result, expected)
 	}
 }
 
-func TestVarIntUpperLimitInc(t *testing.T) {
-	t.Parallel()
+func TestWriteVarBytes(t *testing.T) {
+	data := []byte("hello")
+	var buf bytes.Buffer
 
-	var tests = []struct {
-		testName       string
-		input          uint64
-		expectedResult int
-	}{
-		{"0", 0, 0},
-		{"10", 10, 0},
-		{"100", 100, 0},
-		{"252", 252, 2},
-		{"65535", 65535, 2},
-		{"4294967295", 4294967295, 4},
-		{"18446744073709551615", 18446744073709551615, -1},
+	err := WriteVarBytes(&buf, data)
+	if err != nil {
+		t.Fatalf("WriteVarBytes failed: %v", err)
 	}
 
-	for _, test := range tests {
-		t.Run(test.testName, func(t *testing.T) {
-			r := bt.VarInt(test.input).UpperLimitInc()
-			assert.Equal(t, test.expectedResult, r)
-		})
+	// 验证写入的内容：varint(5) + "hello"
+	expected := []byte{0x05, 'h', 'e', 'l', 'l', 'o'}
+	result := buf.Bytes()
+	if !bytes.Equal(result, expected) {
+		t.Errorf("WriteVarBytes = %v, expected %v", result, expected)
 	}
 }
 
-func TestVarInt(t *testing.T) {
-	t.Parallel()
-
-	var varIntTests = []struct {
-		testName    string
-		input       uint64
-		expectedLen int
-	}{
-		{"VarInt 1 byte Lower", 0, 1},
-		{"VarInt 1 byte Upper", 252, 1},
-		{"VarInt 3 byte Lower", 253, 3},
-		{"VarInt 3 byte Upper", 65535, 3},
-		{"VarInt 5 byte Lower", 65536, 5},
-		{"VarInt 5 byte Upper", 4294967295, 5},
-		{"VarInt 9 byte Lower", 4294967296, 9},
-		{"VarInt 9 byte Upper", 18446744073709551615, 9},
+func TestReadWriteVarBytes_RoundTrip(t *testing.T) {
+	testCases := [][]byte{
+		[]byte("hello"),
+		[]byte(""),
+		make([]byte, 100),
+		make([]byte, 255),
+		make([]byte, 256),
 	}
 
-	for _, varIntTest := range varIntTests {
-		t.Run(varIntTest.testName, func(t *testing.T) {
-			assert.Equal(t, varIntTest.expectedLen, len(bt.VarInt(varIntTest.input).Bytes()))
-		})
+	for _, tc := range testCases {
+		var buf bytes.Buffer
+
+		// 写入
+		err := WriteVarBytes(&buf, tc)
+		if err != nil {
+			t.Fatalf("WriteVarBytes failed for %d bytes: %v", len(tc), err)
+		}
+
+		// 读取
+		r := bytes.NewReader(buf.Bytes())
+		result, err := ReadVarBytes(r, 10000)
+		if err != nil {
+			t.Fatalf("ReadVarBytes failed for %d bytes: %v", len(tc), err)
+		}
+
+		// 验证
+		if !bytes.Equal(result, tc) {
+			t.Errorf("round trip failed: expected %v, got %v", tc, result)
+		}
+
+		// 验证读取完毕
+		remaining, _ := io.ReadAll(r)
+		if len(remaining) != 0 {
+			t.Errorf("extra data after ReadVarBytes: %v", remaining)
+		}
 	}
 }
 
-func TestVarInt_Size(t *testing.T) {
-	tests := map[string]struct {
-		v       bt.VarInt
-		expSize int
+func TestIsHexString(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected bool
 	}{
-		"252 returns 1": {
-			v:       bt.VarInt(252),
-			expSize: 1,
-		},
-		"253 returns 3": {
-			v:       bt.VarInt(253),
-			expSize: 3,
-		},
-		"65535 returns 3": {
-			v:       bt.VarInt(65535),
-			expSize: 3,
-		},
-		"65536 returns 5": {
-			v:       bt.VarInt(65536),
-			expSize: 5,
-		},
-		"4294967295 returns 5": {
-			v:       bt.VarInt(4294967295),
-			expSize: 5,
-		},
-		"4294967296 returns 9": {
-			v:       bt.VarInt(4294967296),
-			expSize: 9,
-		},
+		{"", true},
+		{"00", true},
+		{"ff", true},
+		{"FF", true},
+		{"aBcD", true},
+		{"0123456789abcdef", true},
+		{"0", false},      // 奇数长度
+		{"abc", false},    // 奇数长度
+		{"gh", false},    // 无效字符
+		{"0g", false},    // 无效字符
+		{"0x00", false},  // 包含 'x'
 	}
 
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, test.expSize, test.v.Length())
-		})
+	for _, tc := range testCases {
+		result := IsHexString(tc.input)
+		if result != tc.expected {
+			t.Errorf("IsHexString(%q) = %v, expected %v", tc.input, result, tc.expected)
+		}
 	}
 }

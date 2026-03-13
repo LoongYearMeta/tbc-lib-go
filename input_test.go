@@ -22,7 +22,7 @@ func TestNewInputFromBytes(t *testing.T) {
 		assert.NotNil(t, i)
 		assert.Equal(t, 148, s)
 		assert.Equal(t, uint32(1), i.PreviousTxOutIndex)
-		assert.Equal(t, 107, len(*i.UnlockingScript))
+		assert.Equal(t, 107, i.UnlockingScript.Len())
 		assert.Equal(t, DefaultSequenceNumber, i.SequenceNumber)
 	})
 

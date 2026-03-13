@@ -37,7 +37,6 @@ lock_time        if non-zero and sequence numbers are < 0xFFFFFFFF: block height
 // Tx wraps a bitcoin transaction
 //
 // DO NOT CHANGE ORDER - Optimised memory via malign
-//
 type Tx struct {
 	Inputs   []*Input
 	Outputs  []*Output
@@ -52,10 +51,10 @@ type Txs []*Tx
 // This matches the behavior of JavaScript's new Transaction() constructor.
 func NewTx() *Tx {
 	return &Tx{
-		Version:  10,                    // Match JavaScript CURRENT_VERSION
-		LockTime: 0,                     // Match JavaScript DEFAULT_NLOCKTIME
-		Inputs:   make([]*Input, 0),     // Match JavaScript inputs = []
-		Outputs:  make([]*Output, 0),    // Match JavaScript outputs = []
+		Version:  1,                  // Default transaction version for this library
+		LockTime: 0,                  // Match JavaScript DEFAULT_NLOCKTIME
+		Inputs:   make([]*Input, 0),  // Match JavaScript inputs = []
+		Outputs:  make([]*Output, 0), // Match JavaScript outputs = []
 	}
 }
 
@@ -329,11 +328,13 @@ func (tx *Tx) Clone() *Tx {
 // NodeJSON returns a wrapped *bt.Tx for marshalling/unmarshalling into a node tx format.
 //
 // Marshalling usage example:
-//  bb, err := json.Marshal(tx.NodeJSON())
+//
+//	bb, err := json.Marshal(tx.NodeJSON())
 //
 // Unmarshalling usage example:
-//  tx := bt.NewTx()
-//  if err := json.Unmarshal(bb, tx.NodeJSON()); err != nil {}
+//
+//	tx := bt.NewTx()
+//	if err := json.Unmarshal(bb, tx.NodeJSON()); err != nil {}
 func (tx *Tx) NodeJSON() interface{} {
 	return &nodeTxWrapper{Tx: tx}
 }
@@ -341,11 +342,13 @@ func (tx *Tx) NodeJSON() interface{} {
 // NodeJSON returns a wrapped bt.Txs for marshalling/unmarshalling into a node tx format.
 //
 // Marshalling usage example:
-//  bb, err := json.Marshal(txs.NodeJSON())
+//
+//	bb, err := json.Marshal(txs.NodeJSON())
 //
 // Unmarshalling usage example:
-//  var txs bt.Txs
-//  if err := json.Unmarshal(bb, txs.NodeJSON()); err != nil {}
+//
+//	var txs bt.Txs
+//	if err := json.Unmarshal(bb, txs.NodeJSON()); err != nil {}
 func (tt *Txs) NodeJSON() interface{} {
 	return (*nodeTxsWrapper)(tt)
 }

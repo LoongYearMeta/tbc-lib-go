@@ -24,7 +24,7 @@ func main() {
 	if err := verifyStandardTransaction(txid1, network); err != nil {
 		log.Printf("普通交易验证失败: %v\n", err)
 	} else {
-		fmt.Println("✅ 普通交易验证通过\n")
+		fmt.Println("✅ 普通交易验证通过")
 	}
 
 	// ========= 场景2: 验证FT代币转账交易 =========
@@ -34,7 +34,7 @@ func main() {
 	if err := verifyFTTransaction(ftTxid, network); err != nil {
 		log.Printf("FT交易验证失败: %v\n", err)
 	} else {
-		fmt.Println("✅ FT交易验证通过\n")
+		fmt.Println("✅ FT交易验证通过")
 	}
 
 	// ========= 场景3: 验证NFT转移交易 =========
@@ -44,7 +44,7 @@ func main() {
 	if err := verifyNFTTransaction(nftTxid, network); err != nil {
 		log.Printf("NFT交易验证失败: %v\n", err)
 	} else {
-		fmt.Println("✅ NFT交易验证通过\n")
+		fmt.Println("✅ NFT交易验证通过")
 	}
 }
 
@@ -64,8 +64,8 @@ func verifyStandardTransaction(txid string, network string) error {
 	for i := 0; i < tx.InputCount(); i++ {
 		input := tx.InputIdx(i)
 
-		// 跳过Coinbase输入
-		if isCoinbaseInput(input) {
+		// 跳过 Coinbase 输入
+		if input == nil || isCoinbaseInput(input) {
 			fmt.Printf("输入 %d: Coinbase输入，跳过\n", i)
 			continue
 		}
@@ -114,8 +114,7 @@ func verifyFTTransaction(txid string, network string) error {
 	// FT UTXO的结构：输出0是code script，输出1是tape script
 	for i := 0; i < tx.InputCount(); i++ {
 		input := tx.InputIdx(i)
-
-		if isCoinbaseInput(input) {
+		if input == nil || isCoinbaseInput(input) {
 			continue
 		}
 
@@ -127,7 +126,7 @@ func verifyFTTransaction(txid string, network string) error {
 			return fmt.Errorf("获取前序交易失败: %w", err)
 		}
 
-		// 获取对应的输出（可能是code script或tape script）
+		// 获取对应的输出（可能是 code script 或 tape script）
 		prevOutput := prevTx.OutputIdx(int(vout))
 		if prevOutput == nil {
 			return fmt.Errorf("前序交易在索引 %d 处没有输出", vout)
@@ -154,7 +153,11 @@ func verifyFTTransaction(txid string, network string) error {
 	fmt.Printf("交易包含 %d 个输出\n", tx.OutputCount())
 	for i := 0; i < tx.OutputCount(); i++ {
 		output := tx.OutputIdx(i)
-		scriptASM, _ := output.LockingScript.ToASM()
+		scriptASM, err := output.LockingScript.ToASM()
+		if err != nil {
+			fmt.Printf("输出 %d: 金额=%d, 脚本长度=%d, ToASM 错误: %v\n", i, output.Satoshis, len(output.LockingScript.Bytes()), err)
+			continue
+		}
 		fmt.Printf("输出 %d: 金额=%d, 脚本长度=%d\n", i, output.Satoshis, len(output.LockingScript.Bytes()))
 		if len(scriptASM) > 100 {
 			fmt.Printf("  脚本预览: %s...\n", scriptASM[:100])
@@ -182,8 +185,7 @@ func verifyNFTTransaction(txid string, network string) error {
 	// - 输出2: tape script（元数据）
 	for i := 0; i < tx.InputCount(); i++ {
 		input := tx.InputIdx(i)
-
-		if isCoinbaseInput(input) {
+		if input == nil || isCoinbaseInput(input) {
 			continue
 		}
 
@@ -200,7 +202,7 @@ func verifyNFTTransaction(txid string, network string) error {
 			return fmt.Errorf("前序交易在索引 %d 处没有输出", vout)
 		}
 
-		fmt.Printf("验证NFT输入 %d: 前序交易=%s, vout=%d\n", i, prevTxID, vout)
+		fmt.Printf("验证 NFT 输入 %d: 前序交易=%s, vout=%d\n", i, prevTxID, vout)
 
 		// 使用解释器验证
 		if err := interpreter.NewEngine().Execute(
@@ -227,8 +229,11 @@ func verifyNFTTransaction(txid string, network string) error {
 	return nil
 }
 
-// isCoinbaseInput 检测输入是否为Coinbase输入
+// isCoinbaseInput 检测输入是否为 Coinbase 输入
 func isCoinbaseInput(input *bt.Input) bool {
+	if input == nil {
+		return false
+	}
 	prevTxID := input.PreviousTxID()
 	vout := input.PreviousTxOutIndex
 

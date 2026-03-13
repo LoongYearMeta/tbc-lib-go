@@ -22,7 +22,7 @@ const (
 )
 
 func main() {
-	fmt.Println("=== TBC Transaction 测试程序 ===\n")
+	fmt.Println("=== TBC Transaction 测试程序 ===")
 
 	// 示例1: 基本交易创建
 	basicTransaction()
@@ -68,6 +68,7 @@ func basicTransaction() {
 		log.Printf("获取 UTXO 失败: %v", err)
 		return
 	}
+	fmt.Printf("示例 UTXO: txid=%s vout=%d satoshis=%d\n", hex.EncodeToString(utxo.TxID), utxo.Vout, utxo.Satoshis)
 	// err := tx.From(
 	// 	"11b476ad8e0a48fcd40807a111a050af51114877e09283bfa7f3505081a1819d", // 之前的交易ID
 	// 	0,                                                                    // 输出索引
@@ -437,7 +438,7 @@ func multisigTransaction() {
 	fmt.Printf("多签脚本 (redeem script): %s\n", multisigScript.String())
 
 	// 创建 P2SH 地址（从多签脚本的哈希）
-	scriptHash := crypto.Hash160([]byte(*multisigScript))
+	scriptHash := crypto.Hash160(multisigScript.Bytes())
 	p2shScript := bscript.NewFromBytes([]byte{})
 	p2shScript.AppendOpcodes(bscript.OpHASH160)
 	p2shScript.AppendPushData(scriptHash)
@@ -451,14 +452,14 @@ func multisigTransaction() {
 	addressBytes := make([]byte, 0, 21)
 	addressBytes = append(addressBytes, versionByte)
 	addressBytes = append(addressBytes, scriptHash...)
-	
+
 	// 计算校验和
 	checksum := crypto.Sha256d(addressBytes)[:4]
 	addressBytes = append(addressBytes, checksum...)
-	
+
 	// Base58 编码
 	p2shAddress := base58.Encode(addressBytes)
-	
+
 	fmt.Printf("多签 P2SH 地址: %s\n", p2shAddress)
 
 	// 创建一个从多签地址花费的交易
