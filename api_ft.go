@@ -53,18 +53,33 @@ type ftUtxoListResponse struct {
 
 type ftInfoResponse struct {
 	Data struct {
-		CodeScript string `json:"code_script"`
-		TapeScript string `json:"tape_script"`
-		Amount     string `json:"amount"`
-		Decimal    uint   `json:"decimal"`
-		Name       string `json:"name"`
-		Symbol     string `json:"symbol"`
+		CodeScript string          `json:"code_script"`
+		TapeScript string          `json:"tape_script"`
+		Amount     json.RawMessage `json:"amount"`
+		Decimal    uint            `json:"decimal"`
+		Name       string          `json:"name"`
+		Symbol     string          `json:"symbol"`
 	} `json:"data"`
 }
 
-// buildAddressOrHash 将 addressOrHash 转为 combinescript 所需的 hash 字符串
-// 地址 -> publicKeyHash + "00", 40 位 hex hash -> hash + "01"
+// buildAddressOrHash 将 addressOrHash 转为 combinescript 路径段（与合约 OP_RETURN 中 21 字节 recipient 一致：mode||payload）。
 func buildAddressOrHash(addressOrHash string) (string, error) {
+	ok, _ := bscript.ValidateAddress(addressOrHash)
+	if ok {
+		addr, err := bscript.NewAddressFromString(addressOrHash)
+		if err != nil {
+			return "", err
+		}
+		return "00" + addr.PublicKeyHash, nil
+	}
+	if len(addressOrHash) == 40 && isHex(addressOrHash) {
+		return "01" + addressOrHash, nil
+	}
+	return "", fmt.Errorf("Invalid address or hash")
+}
+
+// buildAddressOrHashLegacy 旧式布局（与 tbc-contract lib/api/api.ts 一致）：pkh||00、hash||01；多数索引仍按此键返回数据。
+func buildAddressOrHashLegacy(addressOrHash string) (string, error) {
 	ok, _ := bscript.ValidateAddress(addressOrHash)
 	if ok {
 		addr, err := bscript.NewAddressFromString(addressOrHash)
@@ -82,6 +97,37 @@ func buildAddressOrHash(addressOrHash string) (string, error) {
 func isHex(s string) bool {
 	_, err := hex.DecodeString(s)
 	return err == nil
+}
+
+// enrichFtUtxoScriptsFromChain 用链上父交易对应输出的 locking script 与金额覆盖 FtUTXO.Script / Satoshis，
+// 与 GetPreTxdata 及 BIP143 sighash 一致。
+func enrichFtUtxoScriptsFromChain(list []*FtUTXO, network string) error {
+	txCache := make(map[string]*Tx)
+	for _, u := range list {
+		if u == nil {
+			continue
+		}
+		tx, ok := txCache[u.TxID]
+		if !ok {
+			var err error
+			tx, err = FetchTXRaw(u.TxID, network)
+			if err != nil {
+				return fmt.Errorf("enrich FtUTXO script: fetch tx %s: %w", u.TxID, err)
+			}
+			txCache[u.TxID] = tx
+		}
+		if int(u.Vout) >= len(tx.Outputs) {
+			return fmt.Errorf("enrich FtUTXO script: vout %d out of range for tx %s (outputs=%d)", u.Vout, u.TxID, len(tx.Outputs))
+		}
+		out := tx.Outputs[u.Vout]
+		ls := out.LockingScript
+		if ls == nil {
+			return fmt.Errorf("enrich FtUTXO script: tx %s vout %d has nil locking script", u.TxID, u.Vout)
+		}
+		u.Script = hex.EncodeToString(ls.Bytes())
+		u.Satoshis = out.Satoshis
+	}
+	return nil
 }
 
 // parseBigIntOrUint64 解析 JSON 中的大整数（可能是 number 或 string）
@@ -107,13 +153,7 @@ func parseBigIntOrUint64(raw json.RawMessage) (string, error) {
 	return strconv.FormatUint(n, 10), nil
 }
 
-// GetFTBalance 获取 FT 余额
-// 对应 JS API.getFTbalance
-func GetFTBalance(contractTxID, addressOrHash, network string) (string, error) {
-	hash, err := buildAddressOrHash(addressOrHash)
-	if err != nil {
-		return "", err
-	}
+func getFTBalanceByHash(contractTxID, hash, network string) (string, error) {
 	baseURL := getBaseURL(network)
 	url := fmt.Sprintf("%sft/tokenbalance/combinescript/%s/contract/%s", baseURL, hash, contractTxID)
 
@@ -135,6 +175,58 @@ func GetFTBalance(contractTxID, addressOrHash, network string) (string, error) {
 	return parseBigIntOrUint64(r.Data.Balance)
 }
 
+func ftBalanceStringPositive(s string) bool {
+	b, ok := new(big.Int).SetString(s, 10)
+	return ok && b.Sign() > 0
+}
+
+// GetFTBalance 获取 FT 余额
+// 对应 JS API.getFTbalance
+func GetFTBalance(contractTxID, addressOrHash, network string) (string, error) {
+	hash, err := buildAddressOrHash(addressOrHash)
+	if err != nil {
+		return "", err
+	}
+	bal, err := getFTBalanceByHash(contractTxID, hash, network)
+	if err != nil {
+		return "", err
+	}
+	if ftBalanceStringPositive(bal) {
+		return bal, nil
+	}
+	hashLegacy, err2 := buildAddressOrHashLegacy(addressOrHash)
+	if err2 != nil || hashLegacy == hash {
+		return bal, nil
+	}
+	bal2, err3 := getFTBalanceByHash(contractTxID, hashLegacy, network)
+	if err3 != nil {
+		return bal, nil
+	}
+	return bal2, nil
+}
+
+func fetchFtUTXOListResponse(contractTxID, hash, network string) (ftUtxoListResponse, error) {
+	baseURL := getBaseURL(network)
+	url := fmt.Sprintf("%sft/utxo/combinescript/%s/contract/%s", baseURL, hash, contractTxID)
+
+	resp, err := defaultHTTPClient.Get(url)
+	if err != nil {
+		return ftUtxoListResponse{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ftUtxoListResponse{}, err
+	}
+
+	var r ftUtxoListResponse
+	if err := json.Unmarshal(body, &r); err != nil {
+		return ftUtxoListResponse{}, fmt.Errorf("解析 FT UTXO 响应失败: %w", err)
+	}
+	return r, nil
+}
+
 // FetchFtUTXOList 获取 FT UTXO 列表
 // 对应 JS API.fetchFtUTXOList
 func FetchFtUTXOList(contractTxID, addressOrHash, codeScript, network string) ([]*FtUTXO, error) {
@@ -142,23 +234,18 @@ func FetchFtUTXOList(contractTxID, addressOrHash, codeScript, network string) ([
 	if err != nil {
 		return nil, err
 	}
-	baseURL := getBaseURL(network)
-	url := fmt.Sprintf("%sft/utxo/combinescript/%s/contract/%s", baseURL, hash, contractTxID)
-
-	resp, err := defaultHTTPClient.Get(url)
+	r, err := fetchFtUTXOListResponse(contractTxID, hash, network)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var r ftUtxoListResponse
-	if err := json.Unmarshal(body, &r); err != nil {
-		return nil, fmt.Errorf("解析 FT UTXO 响应失败: %w", err)
+	if len(r.Data.UTXOs) == 0 {
+		hashLegacy, err2 := buildAddressOrHashLegacy(addressOrHash)
+		if err2 == nil && hashLegacy != hash {
+			r, err = fetchFtUTXOListResponse(contractTxID, hashLegacy, network)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 	if len(r.Data.UTXOs) == 0 {
 		return nil, fmt.Errorf("The ft balance in the account is zero.")
@@ -177,6 +264,9 @@ func FetchFtUTXOList(contractTxID, addressOrHash, codeScript, network string) ([
 			Satoshis:  r.Data.UTXOs[i].TBCValue,
 			FtBalance: fv,
 		})
+	}
+	if err := enrichFtUtxoScriptsFromChain(result, network); err != nil {
+		return nil, err
 	}
 	return result, nil
 }
@@ -424,10 +514,14 @@ func FetchFtInfo(contractTxID, network string) (*FtInfo, error) {
 	if err := json.Unmarshal(body, &r); err != nil {
 		return nil, fmt.Errorf("解析 FT Info 响应失败: %w", err)
 	}
+	amountStr, err := parseBigIntOrUint64(r.Data.Amount)
+	if err != nil {
+		return nil, fmt.Errorf("解析 FT amount: %w", err)
+	}
 	return &FtInfo{
 		CodeScript:  r.Data.CodeScript,
 		TapeScript:  r.Data.TapeScript,
-		TotalSupply: r.Data.Amount,
+		TotalSupply: amountStr,
 		Decimal:     r.Data.Decimal,
 		Name:        r.Data.Name,
 		Symbol:      r.Data.Symbol,
@@ -457,7 +551,8 @@ func FetchFtPrePreTxData(preTX *Tx, preTxVout int, network string) (string, erro
 			if inputIndex >= len(preTX.Inputs) {
 				return "", fmt.Errorf("input index out of range")
 			}
-			prevTxID := hex.EncodeToString(ReverseBytes(preTX.Inputs[inputIndex].PreviousTxID()))
+			// PreviousTxID 已与 TxID()/浏览器 txid 同序，勿再 Reverse；否则 txraw 404+空 raw 会报 ErrTxTooShort。
+			prevTxID := hex.EncodeToString(preTX.Inputs[inputIndex].PreviousTxID())
 			prepreTX, err := FetchTXRaw(prevTxID, network)
 			if err != nil {
 				return "", err

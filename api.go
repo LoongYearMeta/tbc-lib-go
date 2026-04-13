@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/sCrypt-Inc/go-bt/v2/bscript"
@@ -132,7 +133,6 @@ func GetTBCBalance(address, network string) (uint64, error) {
 func FetchUTXO(address string, amountTBC float64, network string) (*UTXO, error) {
 	baseURL := getBaseURL(network)
 	url := fmt.Sprintf("%sutxo/address/%s", baseURL, address)
-	fmt.Printf("[Go FetchUTXO] network=%s url=%s\n", network, url)
 
 	resp, err := defaultHTTPClient.Get(url)
 	if err != nil {
@@ -165,22 +165,28 @@ func FetchUTXO(address string, amountTBC float64, network string) (*UTXO, error)
 		}
 	}
 
-	// 构造锁定脚本（P2PKH）
-	lockingScript, err := bscript.NewP2PKHFromAddress(address)
-	if err != nil {
-		return nil, fmt.Errorf("创建锁定脚本失败: %w", err)
-	}
-
 	txidBytes, err := hex.DecodeString(selected.TxID)
 	if err != nil {
 		return nil, fmt.Errorf("解码 txid 失败: %w", err)
 	}
 
+	chainTx, err := FetchTXRaw(selected.TxID, network)
+	if err != nil {
+		return nil, fmt.Errorf("拉取 UTXO 父交易以校准 script/金额失败: %w", err)
+	}
+	if selected.Index < 0 || selected.Index >= len(chainTx.Outputs) {
+		return nil, fmt.Errorf("UTXO vout %d 超出父交易输出数 %d", selected.Index, len(chainTx.Outputs))
+	}
+	out := chainTx.Outputs[selected.Index]
+	if out.LockingScript == nil {
+		return nil, fmt.Errorf("链上输出 %s:%d 无 locking script", selected.TxID, selected.Index)
+	}
+
 	return &UTXO{
-		TxID:          txidBytes,                 // 大端序；内部会在序列化时处理反转
-		Vout:          uint32(selected.Index),    // 输出索引
-		Satoshis:      selected.Value,           // 金额
-		LockingScript: lockingScript,           // P2PKH 锁定脚本
+		TxID:          txidBytes,
+		Vout:          uint32(selected.Index),
+		Satoshis:      out.Satoshis,
+		LockingScript: out.LockingScript,
 	}, nil
 }
 
@@ -254,12 +260,29 @@ func FetchTXRaw(txid, network string) (*Tx, error) {
 		return nil, fmt.Errorf("TXRaw 接口返回状态码 %d: %s", resp.StatusCode, string(body))
 	}
 
-	var tr txrawResponse
+	var tr struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+		Data    struct {
+			TxRaw string `json:"txraw"`
+		} `json:"data"`
+	}
 	if err := json.NewDecoder(resp.Body).Decode(&tr); err != nil {
 		return nil, fmt.Errorf("解析 TXRaw 响应失败: %w", err)
 	}
+	if tr.Code != "" && tr.Code != "200" {
+		msg := tr.Message
+		if msg == "" {
+			msg = "unknown error"
+		}
+		return nil, fmt.Errorf("TXRaw 接口业务失败 code=%s: %s", tr.Code, msg)
+	}
+	raw := strings.TrimSpace(tr.Data.TxRaw)
+	if raw == "" {
+		return nil, fmt.Errorf("TXRaw 响应缺少 txraw (txid=%s)", txid)
+	}
 
-	return NewTxFromString(tr.Data.TxRaw)
+	return NewTxFromString(raw)
 }
 
 // IsTxOnChain 判断交易是否在链上

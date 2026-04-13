@@ -21,3 +21,6 @@ coverage.txt
 
 # vim
 *.swp
+
+# Go module cache
+.gomodcache/

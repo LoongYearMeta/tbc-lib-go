@@ -49,7 +49,9 @@ func getPartialSha256(m []byte) [8]uint32 {
 			d, c, b, a = c, b, a, t1+t2
 		}
 		if i == lastBlockStart {
-			return [8]uint32{a, b, c, d, e, f, g, hh}
+			// JS partial_sha256 返回的是“最后一个 block 之前的 HASH 状态”，
+			// 即此处 hash[] 还没做过 hash += (a..hh) 的那一轮累计结果。
+			return hash
 		}
 		hash[0] += a
 		hash[1] += b

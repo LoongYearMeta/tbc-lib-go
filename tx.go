@@ -445,15 +445,20 @@ func (tx *Tx) EstimateSizeWithTypes() (*TxSize, error) {
 func (tx *Tx) estimatedFinalTx() (*Tx, error) {
 	tempTx := tx.Clone()
 
+	// 与 tbc-lib-js Transaction._estimateSize 一致：未签名时 generic Input 为 Script.empty()（仅长度前缀 varint 0），
+	// feePerKb/change/seal 内先 _updateChangeOutput 再写入 FT 解锁脚本，故手续费按「空 scriptSig」估算。
+	// 曾用数千字节占位会严重高估手续费，导致与 JS 的找零与 raw 不一致。
+	dummyP2PKHUnlock, _ := hex.DecodeString("4830450221009c13cbcbb16f2cfedc7abf3a4af1c3fe77df1180c0e7eee30d9bcc53ebda39da02207b258005f1bc3cf9dffa06edb358d6db2bcfc87f50516fac8e3f4686fc2a03df412103107feff22788a1fc8357240bf450fd7bca4bd45d5f8bac63818c5a7b67b03876")
+
 	for _, in := range tempTx.Inputs {
-		if !in.PreviousTxScript.IsP2PKH() {
-			return nil, ErrUnsupportedScript
+		if in.UnlockingScript != nil && in.UnlockingScript.Len() > 0 {
+			continue
 		}
-		if in.UnlockingScript == nil || in.UnlockingScript.Len() == 0 {
-			// nolint:lll // insert dummy p2pkh unlocking script (sig + pubkey)
-			dummyUnlockingScript, _ := hex.DecodeString("4830450221009c13cbcbb16f2cfedc7abf3a4af1c3fe77df1180c0e7eee30d9bcc53ebda39da02207b258005f1bc3cf9dffa06edb358d6db2bcfc87f50516fac8e3f4686fc2a03df412103107feff22788a1fc8357240bf450fd7bca4bd45d5f8bac63818c5a7b67b03876")
-			in.UnlockingScript = bscript.NewFromBytes(dummyUnlockingScript)
+		if in.PreviousTxScript != nil && in.PreviousTxScript.IsP2PKH() {
+			in.UnlockingScript = bscript.NewFromBytes(dummyP2PKHUnlock)
+			continue
 		}
+		in.UnlockingScript = bscript.NewFromBytes(nil)
 	}
 	return tempTx, nil
 }
