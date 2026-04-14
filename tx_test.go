@@ -121,6 +121,17 @@ func TestNewTxFromBytes(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, tx)
 	})
+
+	t.Run("valid tx with trailing bytes ignored like tbc-lib-js", func(t *testing.T) {
+		rawTx := "02000000011ccba787d421b98904da3329b2c7336f368b62e89bc896019b5eadaa28145b9c0000000049483045022100c4df63202a9aa2bea5c24ebf4418d145e81712072ef744a4b108174f1ef59218022006eb54cf904707b51625f521f8ed2226f7d34b62492ebe4ddcb1c639caf16c3c41ffffffff0140420f00000000001976a91418392a59fc1f76ad6a3c7ffcea20cfcb17bda9eb88ac00000000"
+		b, err := hex.DecodeString(rawTx)
+		assert.NoError(t, err)
+		b = append(b, 0xde, 0xad, 0xbe, 0xef)
+
+		tx, err := bt.NewTxFromBytes(b)
+		assert.NoError(t, err)
+		assert.NotNil(t, tx)
+	})
 }
 
 func TestTx_TxID(t *testing.T) {

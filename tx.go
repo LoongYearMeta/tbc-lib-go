@@ -3,6 +3,7 @@ package bt
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
 	"io"
@@ -70,15 +71,13 @@ func NewTxFromString(str string) (*Tx, error) {
 }
 
 // NewTxFromBytes takes an array of bytes, constructs a Tx and returns it.
-// This function assumes that the byte slice contains exactly 1 transaction.
+// It parses the first complete transaction in the buffer. Trailing bytes (for example
+// extra suffixes from explorers, tooling, or concatenated payloads) are ignored, matching
+// tbc-lib-js Transaction / bitcore-style deserialization.
 func NewTxFromBytes(b []byte) (*Tx, error) {
-	tx, used, err := NewTxFromStream(b)
+	tx, _, err := NewTxFromStream(b)
 	if err != nil {
 		return nil, err
-	}
-
-	if used != len(b) {
-		return nil, ErrNLockTimeLength
 	}
 
 	return tx, nil
@@ -279,13 +278,72 @@ func (tx *Tx) IsCoinbase() bool {
 // TxIDBytes returns the transaction ID of the transaction as bytes
 // (which is also the transaction hash).
 func (tx *Tx) TxIDBytes() []byte {
+	if tx.Version >= 10 {
+		return ReverseBytes(crypto.Sha256d(tx.newTxHeader()))
+	}
 	return ReverseBytes(crypto.Sha256d(tx.Bytes()))
 }
 
 // TxID returns the transaction ID of the transaction
 // (which is also the transaction hash).
 func (tx *Tx) TxID() string {
-	return hex.EncodeToString(ReverseBytes(crypto.Sha256d(tx.Bytes())))
+	return hex.EncodeToString(tx.TxIDBytes())
+}
+
+// newTxHeader builds the TBC v10+ transaction header used for txid computation.
+// Mirrors tbc-lib-js Transaction.prototype.newTxHeader.
+func (tx *Tx) newTxHeader() []byte {
+	h := make([]byte, 0, 4+4+4+4+32+32+32)
+
+	h = append(h, LittleEndianBytes(tx.Version, 4)...)
+
+	lt := make([]byte, 4)
+	binary.LittleEndian.PutUint32(lt, tx.LockTime)
+	h = append(h, lt...)
+
+	ic := make([]byte, 4)
+	binary.LittleEndian.PutUint32(ic, uint32(len(tx.Inputs)))
+	h = append(h, ic...)
+
+	oc := make([]byte, 4)
+	binary.LittleEndian.PutUint32(oc, uint32(len(tx.Outputs)))
+	h = append(h, oc...)
+
+	var inputBuf []byte
+	var inputScriptBuf []byte
+	for _, in := range tx.Inputs {
+		inputBuf = append(inputBuf, ReverseBytes(in.previousTxID)...)
+		inputBuf = append(inputBuf, LittleEndianBytes(in.PreviousTxOutIndex, 4)...)
+		inputBuf = append(inputBuf, LittleEndianBytes(in.SequenceNumber, 4)...)
+
+		var scriptBytes []byte
+		if in.UnlockingScript != nil {
+			scriptBytes = in.UnlockingScript.Bytes()
+		}
+		scriptHash := sha256.Sum256(scriptBytes)
+		inputScriptBuf = append(inputScriptBuf, scriptHash[:]...)
+	}
+	inputHash := sha256.Sum256(inputBuf)
+	h = append(h, inputHash[:]...)
+	inputScriptHash := sha256.Sum256(inputScriptBuf)
+	h = append(h, inputScriptHash[:]...)
+
+	var outputBuf []byte
+	for _, out := range tx.Outputs {
+		satBytes := make([]byte, 8)
+		binary.LittleEndian.PutUint64(satBytes, out.Satoshis)
+		outputBuf = append(outputBuf, satBytes...)
+		var lockBytes []byte
+		if out.LockingScript != nil {
+			lockBytes = out.LockingScript.Bytes()
+		}
+		outScriptHash := sha256.Sum256(lockBytes)
+		outputBuf = append(outputBuf, outScriptHash[:]...)
+	}
+	outputHash := sha256.Sum256(outputBuf)
+	h = append(h, outputHash[:]...)
+
+	return h
 }
 
 // String encodes the transaction into a hex string.
