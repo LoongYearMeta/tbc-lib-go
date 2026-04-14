@@ -1,6 +1,8 @@
 package bt
 
 import (
+	"math"
+
 	"github.com/sCrypt-Inc/go-bt/v2/bscript"
 )
 
@@ -53,8 +55,9 @@ type changeOutput struct {
 	newOutput     bool
 }
 
-// change will return the amount of satoshis to add to an input after fees are removed.
-// True will be returned if change is required for this tx.
+// change 手续费与 tbc-lib-js getFee/_estimateFee 一致：
+// txFees = ceil(estimateSizeLikeJS * MiningFee.Satoshis / MiningFee.Bytes)，
+// 其中新建找零时 estimate 含即将写入的找零输出脚本（与 JS 临时 0 sat 找零等价）。
 func (tx *Tx) change(f *FeeQuote, output *changeOutput) (uint64, bool, error) {
 	inputAmount := tx.TotalInputSatoshis()
 	outputAmount := tx.TotalOutputSatoshis()
@@ -63,40 +66,29 @@ func (tx *Tx) change(f *FeeQuote, output *changeOutput) (uint64, bool, error) {
 	}
 
 	available := inputAmount - outputAmount
-	size, err := tx.EstimateSizeWithTypes()
-	if err != nil {
-		return 0, false, err
-	}
+
 	stdFee, err := f.Fee(FeeTypeStandard)
 	if err != nil {
 		return 0, false, err
 	}
-	dataFee, err := f.Fee(FeeTypeData)
-	if err != nil {
-		return 0, false, err
+	satPerKB := stdFee.MiningFee.Satoshis
+	bytesPer := stdFee.MiningFee.Bytes
+	if bytesPer <= 0 {
+		bytesPer = 1000
 	}
-	varIntUpper := VarInt(tx.OutputCount()).UpperLimitInc()
-	if varIntUpper == -1 {
-		return 0, false, nil
-	}
-	changeOutputFee := varIntUpper
-	changeP2pkhByteLen := uint64(0)
+
+	var est int
 	if output != nil && output.newOutput {
-		changeP2pkhByteLen = uint64(8 + 1 + 25)
+		est = estimateSizeLikeJS(tx, output.lockingScript)
+	} else {
+		est = estimateSizeLikeJS(tx, nil)
 	}
+	txFees := uint64(math.Ceil(float64(est) * float64(satPerKB) / float64(bytesPer)))
 
-	sFees := (size.TotalStdBytes + changeP2pkhByteLen) * uint64(stdFee.MiningFee.Satoshis) / uint64(stdFee.MiningFee.Bytes)
-	dFees := size.TotalDataBytes * uint64(dataFee.MiningFee.Satoshis) / uint64(dataFee.MiningFee.Bytes)
-	txFees := sFees + dFees + uint64(changeOutputFee)
-
-	// not enough to add change, no change to add
-	if available <= txFees || available-txFees <= DustLimit {
+	if available <= txFees || available-txFees <= uint64(DustLimit) {
 		return 0, false, nil
 	}
 
-	// if we want to add to a new output, set
-	// newOutput to true, this will add the calculated change
-	// into a new output
 	available -= txFees
 	if output != nil && output.newOutput {
 		tx.AddOutput(&Output{Satoshis: available, LockingScript: output.lockingScript})

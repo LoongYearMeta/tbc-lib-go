@@ -633,7 +633,7 @@ func Test_EstimateIsFeePaidEnough(t *testing.T) {
 				TotalDataBytes: 0,
 			},
 			isEnough: false,
-		}, "226B signed transaction (1 input 1 P2PKHOutput + change) no data should return 113 sats fee": {
+		}, "225B signed transaction (1 input 1 P2PKHOutput + change) no data should return 113 sats fee": {
 			tx: func() *bt.Tx {
 				tx := bt.NewTx()
 				w, err := wif.DecodeWIF("cRhdUmZx4MbsjxVxGH4bM4geNLzQEPxspnhGtDCvMmfCLcED8Q6G")
@@ -651,8 +651,8 @@ func Test_EstimateIsFeePaidEnough(t *testing.T) {
 				return tx
 			}(),
 			expSize: &bt.TxSize{
-				TotalBytes:    226,
-				TotalStdBytes: 226,
+				TotalBytes:    225,
+				TotalStdBytes: 225,
 			},
 			isEnough: true,
 		}, "192B signed transaction (1 input 1 P2PKHOutput + no change) should pay exact amount": {
@@ -818,7 +818,7 @@ func Test_IsFeePaidEnough(t *testing.T) {
 				TotalDataBytes: 0,
 			},
 			isEnough: false,
-		}, "226B signed transaction (1 input 1 P2PKHOutput + change) no data should return 113 sats fee": {
+		}, "225B signed transaction (1 input 1 P2PKHOutput + change) no data should return 113 sats fee": {
 			tx: func() *bt.Tx {
 				tx := bt.NewTx()
 				w, err := wif.DecodeWIF("cRhdUmZx4MbsjxVxGH4bM4geNLzQEPxspnhGtDCvMmfCLcED8Q6G")
@@ -834,8 +834,8 @@ func Test_IsFeePaidEnough(t *testing.T) {
 				return tx
 			}(),
 			expSize: &bt.TxSize{
-				TotalBytes:    226,
-				TotalStdBytes: 226,
+				TotalBytes:    225,
+				TotalStdBytes: 225,
 			},
 			isEnough: true,
 		}, "192B signed transaction (1 input 1 P2PKHOutput + no change) should pay exact amount": {
