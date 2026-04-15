@@ -1,8 +1,6 @@
 package bt
 
 import (
-	"math"
-
 	"github.com/sCrypt-Inc/go-bt/v2/bscript"
 )
 
@@ -56,8 +54,8 @@ type changeOutput struct {
 }
 
 // change 手续费与 tbc-lib-js getFee/_estimateFee 一致：
-// txFees = ceil(estimateSizeLikeJS * MiningFee.Satoshis / MiningFee.Bytes)，
-// 其中新建找零时 estimate 含即将写入的找零输出脚本（与 JS 临时 0 sat 找零等价）。
+// txFees = ceil(estimateSizeLikeJS * feePerKb / 1000)，feePerKb = MiningFee.Satoshis*1000/MiningFee.Bytes；
+// 新建找零时 estimate 含即将写入的找零输出脚本（与 JS 临时 0 sat 找零等价）。
 func (tx *Tx) change(f *FeeQuote, output *changeOutput) (uint64, bool, error) {
 	inputAmount := tx.TotalInputSatoshis()
 	outputAmount := tx.TotalOutputSatoshis()
@@ -71,11 +69,6 @@ func (tx *Tx) change(f *FeeQuote, output *changeOutput) (uint64, bool, error) {
 	if err != nil {
 		return 0, false, err
 	}
-	satPerKB := stdFee.MiningFee.Satoshis
-	bytesPer := stdFee.MiningFee.Bytes
-	if bytesPer <= 0 {
-		bytesPer = 1000
-	}
 
 	var est int
 	if output != nil && output.newOutput {
@@ -83,7 +76,7 @@ func (tx *Tx) change(f *FeeQuote, output *changeOutput) (uint64, bool, error) {
 	} else {
 		est = estimateSizeLikeJS(tx, nil)
 	}
-	txFees := uint64(math.Ceil(float64(est) * float64(satPerKB) / float64(bytesPer)))
+	txFees := CeilMiningFeeFromEstimatedBytes(est, stdFee.MiningFee)
 
 	if available <= txFees || available-txFees <= uint64(DustLimit) {
 		return 0, false, nil

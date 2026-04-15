@@ -1,10 +1,12 @@
 package unlocker
 
 import (
+	"bytes"
 	"context"
 	"errors"
 
 	"github.com/libsv/go-bk/bec"
+	"github.com/libsv/go-bk/crypto"
 	"github.com/sCrypt-Inc/go-bt/v2"
 	"github.com/sCrypt-Inc/go-bt/v2/bscript"
 	"github.com/sCrypt-Inc/go-bt/v2/sighash"
@@ -44,8 +46,18 @@ func (l *Simple) UnlockingScript(ctx context.Context, tx *bt.Tx, params bt.Unloc
 		params.SigHashFlags = sighash.AllForkID
 	}
 
-	switch tx.Inputs[params.InputIdx].PreviousTxScript.ScriptType() {
+	prevScript := tx.Inputs[params.InputIdx].PreviousTxScript
+	switch prevScript.ScriptType() {
 	case bscript.ScriptTypePubKeyHash:
+		// 与 tbc-lib-js tx.sign() 对齐：pkh 不匹配时静默跳过（返回空脚本），
+		// 避免产生无效签名导致后续 OP_EQUALVERIFY 失败。
+		if scriptPKH, err := prevScript.PublicKeyHash(); err == nil {
+			keyPKH := crypto.Hash160(l.PrivateKey.PubKey().SerialiseCompressed())
+			if !bytes.Equal(scriptPKH, keyPKH) {
+				return bscript.NewFromBytes(nil), nil
+			}
+		}
+
 		sh, err := tx.CalcInputSignatureHash(params.InputIdx, params.SigHashFlags)
 		if err != nil {
 			return nil, err

@@ -278,6 +278,18 @@ type FeeUnit struct {
 	Bytes    int `json:"bytes"`    // Number of bytes that the Fee covers
 }
 
+// CeilMiningFeeFromEstimatedBytes returns ceil(estimatedTxBytes * feePerKb / 1000), matching
+// tbc-lib-js Transaction._estimateFee: Math.ceil(estimatedSize / 1000 * feePerKb).
+// feePerKb is satoshis per 1000 bytes, derived from MAPI miningFee as Satoshis*1000/Bytes.
+func CeilMiningFeeFromEstimatedBytes(estimatedTxBytes int, mining FeeUnit) uint64 {
+	b := mining.Bytes
+	if b <= 0 {
+		b = 1000
+	}
+	rate := int64(mining.Satoshis) * 1000 / int64(b)
+	return uint64((int64(estimatedTxBytes)*rate + 999) / 1000)
+}
+
 // Fee displays the MiningFee as well as the RelayFee for a specific
 // FeeType, for example 'standard' or 'data'
 // see https://github.com/bitcoin-sv-specs/brfc-misc/tree/master/feespec

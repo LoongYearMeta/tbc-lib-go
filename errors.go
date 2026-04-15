@@ -7,7 +7,9 @@ var (
 	ErrInvalidTxID          = errors.New("invalid TxID")
 	ErrTxNil                = errors.New("tx is nil")
 	ErrTxTooShort           = errors.New("too short to be a tx - even an empty tx has 10 bytes")
-	ErrNLockTimeLength      = errors.New("nLockTime length must be 4 bytes long")
+	// ErrNLockTimeLength is kept for compatibility; it is not returned from NewTxFromBytes
+	// when the buffer merely has trailing bytes after a valid tx (those are ignored).
+	ErrNLockTimeLength = errors.New("nLockTime length must be 4 bytes long")
 	ErrEmptyValues          = errors.New("empty value or values passed, all arguments are required and cannot be empty")
 	ErrUnsupportedScript    = errors.New("non-P2PKH input used in the tx - unsupported")
 	ErrInvalidScriptType    = errors.New("invalid script type")

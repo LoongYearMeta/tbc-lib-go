@@ -1,7 +1,6 @@
 package bt_test
 
 import (
-	"math"
 	"testing"
 
 	"github.com/sCrypt-Inc/go-bt/v2"
@@ -23,7 +22,7 @@ func TestJSEstimateSize_oneP2PKHInputOneP2PKHOutput(t *testing.T) {
 	assert.Equal(t, 224, tx.JSEstimateSize())
 }
 
-// Golden: change() 隐式手续费 = ceil(JSEstimateSizeWithPendingChange * satPerKB / bytesPer)，
+// Golden: change() 隐式手续费 = ceil(estimateSize * feePerKb / 1000)（与 JS _estimateFee 一致），
 // 此处仅 1 输入、将新增 1 笔找零，estimate 含找零脚本（与 JS 临时 0 sat 输出一致）。
 func TestChangeToAddress_implicitFee_matchesCeilJSFormula(t *testing.T) {
 	tx := bt.NewTx()
@@ -37,14 +36,21 @@ func TestChangeToAddress_implicitFee_matchesCeilJSFormula(t *testing.T) {
 
 	std, err := bt.NewFeeQuote().Fee(bt.FeeTypeStandard)
 	require.NoError(t, err)
-	sat, bytesPer := std.MiningFee.Satoshis, std.MiningFee.Bytes
-	// 仅输入、无输出时 JSEstimateSize 不含找零；找零路径下内部用带 extra 脚本的估算，等价于 224B → fee 112 @ 5/10
+	// 224B，默认 MAPI 5 sat/10B → feePerKb=500 → ceil(224*500/1000)=112
 	wantEst := 224
-	wantFee := uint64(math.Ceil(float64(wantEst) * float64(sat) / float64(bytesPer)))
+	wantFee := bt.CeilMiningFeeFromEstimatedBytes(wantEst, std.MiningFee)
 
 	fee := tx.TotalInputSatoshis() - tx.TotalOutputSatoshis()
 	assert.Equal(t, wantFee, fee)
 	assert.Equal(t, uint64(4000000)-wantFee, tx.Outputs[0].Satoshis)
+}
+
+// Golden: CeilMiningFeeFromEstimatedBytes 与 JS Math.ceil(size/1000 * feePerKb)；
+// Transaction.FEE_PER_KB 默认 100 → MiningFee 100 sat / 1000 bytes。
+func TestCeilMiningFeeFromEstimatedBytes_golden(t *testing.T) {
+	assert.Equal(t, uint64(112), bt.CeilMiningFeeFromEstimatedBytes(224, bt.FeeUnit{Satoshis: 5, Bytes: 10}))
+	assert.Equal(t, uint64(23), bt.CeilMiningFeeFromEstimatedBytes(224, bt.FeeUnit{Satoshis: 100, Bytes: 1000}))
+	assert.Equal(t, uint64(1), bt.CeilMiningFeeFromEstimatedBytes(1, bt.FeeUnit{Satoshis: 100, Bytes: 1000}))
 }
 
 func TestAdjustImplicitFeeToTarget(t *testing.T) {
