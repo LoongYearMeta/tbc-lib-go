@@ -2,7 +2,9 @@
 
 ## 简介
 
-tbc-lib-go 是 Turing BC (TBC) 区块链的 Go 语言基础库，提供创建和操作 TBC 交易所需的核心功能。与 tbc-lib-js  JavaScript 库在 API 设计上保持对应，便于跨语言开发。
+`tbc-lib-go`（Go 模块：`github.com/sCrypt-Inc/go-bt/v2`）提供 Turing BC (TBC) 交易的构造、解析、签名、脚本与区块处理等**链上核心**能力，在类型与调用习惯上与官方 JavaScript 库 **[tbc-lib-js](https://github.com/TuringBitChain/tbc-lib-js)**（当前工作区同步版本 **npm 1.0.30**）的文档与 README 示例对齐，便于跨语言对照。
+
+官方 JS 文档入口与源码中的 `docs/` 目录一致，见仓库内 [docs/index.md](../../tbc-lib-js/docs/index.md)。
 
 ## 快速开始
 
@@ -10,76 +12,68 @@ tbc-lib-go 是 Turing BC (TBC) 区块链的 Go 语言基础库，提供创建和
 go get github.com/sCrypt-Inc/go-bt/v2
 ```
 
-## 文档索引
+## 文档索引（与 tbc-lib-js/docs 主题对应）
 
-### 地址与密钥管理
+| 主题 | Go 文档 | JS 参考 |
+|------|---------|---------|
+| 网络 | [networks.md](networks.md) | [networks.md](../../tbc-lib-js/docs/networks.md) |
+| 区块 | [block.md](block.md) | [block.md](../../tbc-lib-js/docs/block.md) |
+| 脚本 | [script.md](script.md) | [script.md](../../tbc-lib-js/docs/script.md) |
+| 交易 | [transaction.md](transaction.md) | [transaction.md](../../tbc-lib-js/docs/transaction.md) |
+| 未花费输出 | [unspentoutput.md](unspentoutput.md) | [unspentoutput.md](../../tbc-lib-js/docs/unspentoutput.md) |
+| ECIES | [ecies.md](ecies.md) | [ecies.md](../../tbc-lib-js/docs/ecies.md) |
 
-- [网络配置](networks.md) - 使用不同网络（livenet、testnet、regtest、stn）
-- 私钥与公钥（参见 `bt` 包内文档）
+JS 文档中还列有 `address.md`、`privatekey.md` 等（Bitcore 风格索引）；Go 侧对应能力分散在 `bscript`（地址）、`github.com/libsv/go-bk/bec`（密钥）等包中，本库以交易与脚本为主线，密钥示例见下文。
 
-### 支付处理
+## 链上 HTTP（索引器 / 广播）
 
-- [交易类](transaction.md) - Tx 交易构建与签名
-- [未花费输出](unspentoutput.md) - UTXO 的表示与使用
+本仓库根包**不再内置** HTTP 索引器客户端。若需与节点交互（拉取 UTXO、广播 `txraw` 等），请在应用层使用 **`github.com/sCrypt-Inc/tbc-contract-go/lib/api`**，或与官方生态中其它 API 封装组合，再与本文档中的 `bt.Tx` / `bt.UTXO` 衔接。
 
-### TBC 内部结构
+## 示例：创建并签名（链式 API）
 
-- [脚本](script.md) - bscript 脚本的构建与解析
-- [区块](block.md) - Block 与 BlockHeader
-
-### 扩展功能
-
-- [ECIES 加密](ecies.md) - 与 electrum 兼容的 ECIES 消息加密
-
-### 合约与 API
-
-- FT（同质化代币） - 参见 `api_ft.go`
-- NFT（非同质化代币） - 参见 `api_nft.go`
-- Pool NFT - 参见 `api_pool.go`
-
-## 示例
-
-### 创建交易
+与官方 README 中 `Transaction` 的 `.from().to().change().fee().sign()` 思路一致；Go 使用 `FromChain` / `To` / `Change` / `Sign`，其中 `Change` 需传入 `*bt.FeeQuote`（可为 `nil` 使用默认），`Sign` 需 `context` 与 `UnlockerGetter`。
 
 ```go
 package main
 
 import (
-    "github.com/sCrypt-Inc/go-bt/v2"
+	"context"
+
+	"github.com/libsv/go-bk/bec"
+	bt "github.com/sCrypt-Inc/go-bt/v2"
+	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/sCrypt-Inc/go-bt/v2/unlocker"
 )
 
-func main() {
-    tx := bt.NewTx()
-    tx.From(
-        &bt.UTXO{
-            TxID:          txIDBytes,
-            Vout:          0,
-            LockingScript: lockingScript,
-            Satoshis:      100000,
-        },
-    )
-    tx.To(recipientAddress, 50000)
-    tx.Change(changeAddress)
-    tx.Sign(privateKey)
+func example(utxo *bt.UTXO, priv *bec.PrivateKey, toAddr, changeAddr string) {
+	ctx := context.Background()
+	tx := bt.NewTx().
+		FromChain(utxo).
+		To(toAddr, 50_000).
+		Change(changeAddr, nil)
+	tx.Sign(ctx, &unlocker.Getter{PrivateKey: priv})
+	_ = tx.String()
 }
 ```
 
-### 解析区块
+## 示例：解析区块
 
 ```go
 block, err := bt.NewBlockFromString(hexEncodedBlock)
 if err != nil {
-    // 处理错误
+	return
 }
 for _, tx := range block.Transactions {
-    // 遍历区块中的交易
+	_ = tx.TxID()
 }
 ```
 
-### ECIES 加密消息
+## 示例：ECIES
 
 ```go
-ecies := bt.NewECIES(nil)
-ecies.PublicKey(recipientPubKey)
-ciphertext, _ := ecies.EncryptBIE1([]byte("hello"))
+ec := bt.NewECIES(nil)
+ec.PublicKey(recipientPubKey)
+cipher, err := ec.EncryptBIE1([]byte("hello"))
+_ = cipher
+_ = err
 ```

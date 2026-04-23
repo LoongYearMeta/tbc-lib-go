@@ -1,113 +1,117 @@
 # Transaction 交易
 
-`bt.Tx` 是 TBC 交易的核心类型，用于构建、签名和序列化交易。API 设计参考 tbc-lib-js 的 `Transaction` 类。
+**参考：** [tbc-lib-js/docs/transaction.md](../../tbc-lib-js/docs/transaction.md)
+
+`bt.Tx` 对应官方库中的 `Transaction`：管理输入、输出、版本号与 `LockTime`（`uint32`），支持链式构造与序列化。
 
 ## 交易结构
 
-交易包含：
+- **Inputs**：对前序输出的引用与解锁脚本
+- **Outputs**：本交易创建的输出
+- **Version**：通常为 `1`（TBC 高版本交易另有约定，见源码与 JS 侧一致部分）
+- **LockTime**：锁定时间；可直接赋值 `tx.LockTime`，语义与 [Bitcoin locktime](https://bitcoin.org/en/developer-guide#locktime-and-sequence-number) 一致
 
-- **Inputs**：输入列表，每个输入引用一个 UTXO
-- **Outputs**：输出列表
-- **Version**：交易版本号（通常为 1）
-- **LockTime**：锁定时间（区块高度或时间戳）
-
-## 创建交易
+## 创建与反序列化
 
 ```go
-// 创建空交易
 tx := bt.NewTx()
 
-// 从 hex 字符串解析
 tx, err := bt.NewTxFromString(hexTx)
-
-// 从字节解析
-tx, err := bt.NewTxFromBytes(txBytes)
+tx, err = bt.NewTxFromBytes(txBytes)
 ```
 
 ## 添加输入
 
-```go
-// 从单个 UTXO 添加输入
-tx.From(&bt.UTXO{
-    TxID:          txID,
-    Vout:          0,
-    LockingScript: script,
-    Satoshis:      100000,
-})
+底层 API（返回 `error`）：
 
-// 从多个 UTXO 添加输入
-tx.From(utxo1).From(utxo2)
+```go
+if err := tx.FromUTXOs(utxo1, utxo2); err != nil { /* ... */ }
+// 或 From(prevTxIDHex, vout, lockingScriptHex, satoshis)
+```
+
+与 JS `transaction.from(utxos)` 相同的**链式**写法（失败时 `panic`，便于一行写完）：
+
+```go
+tx := bt.NewTx().FromChain(utxo1, utxo2)
+
+tx = bt.NewTx().FromStringChain(
+	"a0a08e397203df68392ee95b3f08b0b3b3e2401410a38d46ae0874f74846f2e9",
+	0,
+	"76a914089acaba6af8b2b4fb4bed3b747ab1e4e60b496588ac",
+	70000,
+)
 ```
 
 ## 添加输出
 
 ```go
-// 向地址支付（P2PKH）
-tx.To(address, 50000)  // 50000 聪
+tx.To(address, satoshis) // PayToAddress，与 JS .to 对应
 
-// 添加自定义输出
-tx.AddOutput(&bt.Output{
-    LockingScript: script,
-    Satoshis:      1000,
-})
+outputs := []bt.ToOutput{{Address: "1A...", Amount: 1000}, {Address: "1B...", Amount: 2000}}
+tx.ToMultiple(outputs)
 
-// 设置找零地址
-tx.Change(changeAddress)
+// 任意锁定脚本 + 金额
+_ = tx.PayTo(lockingScript, amountSat)
+_ = tx.AddOutput(&bt.Output{LockingScript: script, Satoshis: n})
 ```
+
+## 找零与费率
+
+与 JS 的 `.change(addr)` + `.fee(sat)` 组合对应：Go 使用 **`Change(address string, feeQuote *bt.FeeQuote)`**。`feeQuote == nil` 时使用 `bt.NewFeeQuote()` 的默认报价（内部再区分 standard / data 等，见 `fees.go`）。
+
+```go
+tx.Change(changeAddress, nil)
+```
+
+单笔矿工费由找零逻辑与 `FeeQuote` 共同决定；若需与 JS 一样显式指定「固定手续费」，请在设置输出后、调用 `Change` 前阅读 `ChangeToAddress` / `FeeQuote` 相关源码或合约层封装。
 
 ## 签名
 
-```go
-// 使用私钥签名
-tx.Sign(privateKey)
+与 JS `.sign(privateKey, sighashType)` 不同，Go 使用 **`context.Context` + `UnlockerGetter`**（常用 `unlocker.Getter` 携带 `*bec.PrivateKey`）。链式方法：
 
-// 自定义费用
-tx.Fee(546)        // 最小非粉尘费用
-tx.FeePerKb(1000)  // 每 KB 费用（聪）
+```go
+import (
+	"context"
+	"github.com/sCrypt-Inc/go-bt/v2/unlocker"
+)
+
+ctx := context.Background()
+tx.Sign(ctx, &unlocker.Getter{PrivateKey: privKey})
 ```
+
+等价于对全部输入调用 `FillAllInputs`；若需按输入处理错误，请直接使用 `FillAllInputs` / `FillInput` 而非链式 `Sign`。
 
 ## 序列化
 
 ```go
-// 序列化为 hex
 hexTx := tx.String()
-
-// 序列化为字节
-txBytes := tx.Bytes()
-
-// 带检查的序列化（校验签名、费用等）
-hexTx, err := tx.Serialize()
+raw := tx.Bytes()
+hexChecked, err := tx.Serialize() // 带检查
 ```
 
-## 获取交易哈希
+## 交易 ID
 
 ```go
-txID := tx.TxID()        // 返回 []byte
-txIDStr := tx.TxIDStr()  // 返回 hex 字符串
+idHex := tx.TxID()       // hex 字符串
+idBytes := tx.TxIDBytes() // 32 字节（内部哈希字节序与链上展示一致）
 ```
 
-## 费用计算
+## 费用与检查（对照 JS 文档）
 
-当输出总和小于输入总和时，差额作为矿工费。通过 `Change()` 设置找零地址后，库会自动计算并添加找零输出。
+JS 文档中的 `serialize({ disableLargeFees: ... })` 等选项，在 Go 中由 `Serialize` / `CanBeDeep` 等路径体现；具体字段名与默认值以 Go 源码为准。常见常量：`FeeQuote`、`FeeTypeStandard` / `FeeTypeData` 等与 `fees.go` 中定义一致。
 
-## 时间锁定
+## 多签与部分签名
 
-```go
-// 锁定到指定区块高度
-tx.LockToBlockHeight(500000)
+JS 文档描述了 `getSignatures` / `applySignature` 等流程。Go 库在输入层通过 `Unlocker` 与签名哈希类型组合完成解锁；多签场景通常需要自定义 `UnlockerGetter` 或在合约库中组装解锁脚本。脚本层识别见 [script.md](script.md)。
 
-// 锁定到指定时间
-tx.LockToTime(time.Date(2025, 11, 30, 0, 0, 0, 0, time.UTC))
-```
+## 与 tbc-lib-js 的对应关系（速查）
 
-## 与 tbc-lib-js 的对应关系
-
-| tbc-lib-js                | tbc-lib-go             |
-|---------------------------|------------------------|
-| new Transaction()         | bt.NewTx()             |
-| .from(utxo)               | .From(utxo)            |
-| .to(address, amount)      | .To(address, amount)   |
-| .change(address)          | .Change(address)       |
-| .sign(privateKey)         | .Sign(privateKey)      |
-| .fee(amount)              | .Fee(amount)           |
-| .serialize()              | .Serialize()           |
+| tbc-lib-js | tbc-lib-go |
+|------------|------------|
+| `new Transaction()` | `bt.NewTx()` |
+| `.from(utxo)` | `.FromChain(utxo)` 或 `FromUTXOs` |
+| `.to(addr, amount)` | `.To(addr, amount)` |
+| `.change(addr)` | `.Change(addr, feeQuote)`，`feeQuote` 可为 `nil` |
+| `.fee(sat)` | 由 `Change` + `FeeQuote` 路径体现（非同名方法） |
+| `.sign(priv, sighash)` | `.Sign(ctx, unlockerGetter)` |
+| `.serialize()` | `.Serialize()` / `.String()` |
