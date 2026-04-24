@@ -2,7 +2,7 @@
 
 **参考：** [tbc-lib-js/docs/script.md](../../tbc-lib-js/docs/script.md)
 
-`bscript.Script` 用于构造、解析与识别常见锁定脚本；验证时由 `bscript/interpreter` 执行拼接后的脚本。
+`script.Script` 用于构造、解析与识别常见锁定脚本；验证时由 `script/interpreter` 执行拼接后的脚本。
 
 > 两种 import 风格任选：
 > - **推荐（门面）**：`import tbc "github.com/LoongYearMeta/tbc-lib-go"` 直接用 `tbc.X`，下游零改动。
@@ -13,20 +13,20 @@
 ## 类型常量（字符串标签）
 
 ```go
-import "github.com/LoongYearMeta/tbc-lib-go/bscript"
+import "github.com/LoongYearMeta/tbc-lib-go/script"
 
-_ = bscript.ScriptTypePubKeyHash
-_ = bscript.ScriptTypeMultiSig
-_ = bscript.ScriptTypeNullData
+_ = script.ScriptTypePubKeyHash
+_ = script.ScriptTypeMultiSig
+_ = script.ScriptTypeNullData
 ```
 
 ## 创建与解析
 
 ```go
-s := bscript.NewScript()
-s, err := bscript.NewFromHexString("76a914...")
-s = bscript.NewFromBytes(raw)
-s, err = bscript.NewFromASM("OP_DUP OP_HASH160 ...")
+s := script.NewScript()
+s, err := script.NewFromHexString("76a914...")
+s = script.NewFromBytes(raw)
+s, err = script.NewFromASM("OP_DUP OP_HASH160 ...")
 ```
 
 ## 常见输出
@@ -34,14 +34,14 @@ s, err = bscript.NewFromASM("OP_DUP OP_HASH160 ...")
 ### P2PKH
 
 ```go
-s, err := bscript.NewP2PKHFromAddress(addressString)
+s, err := script.NewP2PKHFromAddress(addressString)
 // 或 NewP2PKHFromPubKeyHash、NewP2PKHFromPubKeyEC 等
 ```
 
 ### P2PK
 
 ```go
-s, err := bscript.NewP2PKFromPubKey(pubKey)
+s, err := script.NewP2PKFromPubKey(pubKey)
 ```
 
 ### P2MS（多签）
@@ -55,7 +55,7 @@ s, err := bscript.NewP2PKFromPubKey(pubKey)
 ### OP_RETURN
 
 ```go
-s, err := bscript.BuildDataOut(dataBytes, "") // 或按 `script_doc_test` 使用的 encoding 参数
+s, err := script.BuildDataOut(dataBytes, "") // 或按 `script_doc_test` 使用的 encoding 参数
 ```
 
 也可在交易上使用 `tx.AddOpReturnOutput(data)`。
@@ -75,7 +75,7 @@ script.IsDataOut() // OP_RETURN 数据输出
 `tbc-lib-js` 的 `Interpreter#verify(inputScript, outputScript)` 参数顺序为 **先解锁脚本、后锁定脚本**。Go 的 `WithScripts` 为 **`WithScripts(lockingScript, unlockingScript)`**，顺序与 JS **相反**，请注意。
 
 ```go
-import "github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter"
+import "github.com/LoongYearMeta/tbc-lib-go/script/interpreter"
 
 err := interpreter.NewEngine().Execute(
 	interpreter.WithScripts(lockingScript, unlockingScript),
@@ -95,8 +95,8 @@ err = interpreter.NewEngine().Execute(
 
 | tbc-lib-js | tbc-lib-go |
 |------------|------------|
-| `Script.buildPublicKeyHashOut` | `bscript.NewP2PKHFromAddress` 等 |
-| `Script.buildPublicKeyOut` | `bscript.NewP2PKFromPubKey` |
+| `Script.buildPublicKeyHashOut` | `script.NewP2PKHFromAddress` 等 |
+| `Script.buildPublicKeyOut` | `script.NewP2PKFromPubKey` |
 | `Script.buildMultisigOut` | `NewFromASM` / `NewFromHexString` + `IsMultisigOut` |
-| `Script.buildDataOut` | `bscript.BuildDataOut` |
+| `Script.buildDataOut` | `script.BuildDataOut` |
 | `Interpreter().verify(in, out)` | `Execute(WithScripts(lock, unlock), ...)` |

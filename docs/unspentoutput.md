@@ -16,7 +16,7 @@
 |------|-----|----------------|
 | 前序交易 ID（32 字节，库内小端存储） | `TxID []byte` | `txId` / `txid` |
 | 输出索引 | `Vout uint32` | `outputIndex` / `vout` |
-| 锁定脚本 | `LockingScript *bscript.Script` | `script` / `scriptPubKey` |
+| 锁定脚本 | `LockingScript *script.Script` | `script` / `scriptPubKey` |
 | 金额（聪） | `Satoshis uint64` | `satoshis`；或 `amount`（TBC） |
 | 序列号 | `SequenceNumber uint32` | 默认 `0xffffffff` |
 
@@ -51,11 +51,11 @@ import (
 	"encoding/hex"
 
 	tbc "github.com/LoongYearMeta/tbc-lib-go"
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 )
 
 txID, _ := hex.DecodeString("a0a08e397203df68392ee95b3f08b0b3b3e2401410a38d46ae0874f74846f2e9")
-lockingScript, _ := bscript.NewFromHexString("76a914089acaba6af8b2b4fb4bed3b747ab1e4e60b496588ac")
+lockingScript, _ := script.NewFromHexString("76a914089acaba6af8b2b4fb4bed3b747ab1e4e60b496588ac")
 
 utxo := &tbc.UTXO{
 	TxID:          txID,
