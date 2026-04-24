@@ -1,4 +1,4 @@
-package tbc_test
+package transaction_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	. "github.com/libsv/go-bk/wif"
-	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction"
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 	"github.com/LoongYearMeta/tbc-lib-go/unlocker"
@@ -19,7 +19,7 @@ func TestAddInputFromTx(t *testing.T) {
 	pubkey1, _ := hex.DecodeString("0280f642908697e8068c2e921bd998d6c2b90553064656f91b9cb9e98f443aac30")
 	pubkey2, _ := hex.DecodeString("02434dc3db4281c0895d7a126bb266e7648caca7d0e2e487bc41f954722d4ee397")
 
-	prvTx := tbc.NewTx()
+	prvTx := transaction.NewTx()
 	err := prvTx.AddP2PKHOutputFromPubKeyBytes(pubkey1, uint64(100000))
 	assert.NoError(t, err)
 	err = prvTx.AddP2PKHOutputFromPubKeyBytes(pubkey1, uint64(100000))
@@ -27,7 +27,7 @@ func TestAddInputFromTx(t *testing.T) {
 	err = prvTx.AddP2PKHOutputFromPubKeyBytes(pubkey2, uint64(100000))
 	assert.NoError(t, err)
 
-	newTx := tbc.NewTx()
+	newTx := transaction.NewTx()
 	err = newTx.AddP2PKHInputsFromTx(prvTx, pubkey1)
 	assert.NoError(t, err)
 	assert.Equal(t, newTx.InputCount(), 2) // only 2 utxos added
@@ -36,7 +36,7 @@ func TestAddInputFromTx(t *testing.T) {
 
 func TestTx_InputCount(t *testing.T) {
 	t.Run("get input count", func(t *testing.T) {
-		tx := tbc.NewTx()
+		tx := transaction.NewTx()
 		assert.NotNil(t, tx)
 		err := tx.From(
 			"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
@@ -51,7 +51,7 @@ func TestTx_InputCount(t *testing.T) {
 
 func TestTx_From(t *testing.T) {
 	t.Run("invalid locking script (hex decode failed)", func(t *testing.T) {
-		tx := tbc.NewTx()
+		tx := transaction.NewTx()
 		assert.NotNil(t, tx)
 		err := tx.From(
 			"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
@@ -71,7 +71,7 @@ func TestTx_From(t *testing.T) {
 	})
 
 	t.Run("valid script and tx", func(t *testing.T) {
-		tx := tbc.NewTx()
+		tx := transaction.NewTx()
 		assert.NotNil(t, tx)
 		err := tx.From(
 			"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
@@ -86,7 +86,7 @@ func TestTx_From(t *testing.T) {
 		assert.Equal(t, "07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b", hex.EncodeToString(inputs[0].PreviousTxID()))
 		assert.Equal(t, uint32(0), inputs[0].PreviousTxOutIndex)
 		assert.Equal(t, uint64(4000000), inputs[0].PreviousTxSatoshis)
-		assert.Equal(t, tbc.DefaultSequenceNumber, inputs[0].SequenceNumber)
+		assert.Equal(t, transaction.DefaultSequenceNumber, inputs[0].SequenceNumber)
 		assert.Equal(t, "76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac", inputs[0].PreviousTxScript.String())
 	})
 }
@@ -95,14 +95,14 @@ func TestTx_FromUTXOs(t *testing.T) {
 	t.Parallel()
 
 	t.Run("one utxo", func(t *testing.T) {
-		tx := tbc.NewTx()
+		tx := transaction.NewTx()
 		script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 		assert.NoError(t, err)
 
 		txID, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 		assert.NoError(t, err)
 
-		assert.NoError(t, tx.FromUTXOs(&tbc.UTXO{
+		assert.NoError(t, tx.FromUTXOs(&transaction.UTXO{
 			TxID:          txID,
 			LockingScript: script,
 			Vout:          0,
@@ -118,7 +118,7 @@ func TestTx_FromUTXOs(t *testing.T) {
 	})
 
 	t.Run("multiple utxos", func(t *testing.T) {
-		tx := tbc.NewTx()
+		tx := transaction.NewTx()
 		scr1, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 		assert.NoError(t, err)
 		txID, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
@@ -129,12 +129,12 @@ func TestTx_FromUTXOs(t *testing.T) {
 		txID2, err := hex.DecodeString("3c8edde27cb9a9132c22038dac4391496be9db16fd21351565cc1006966fdad5")
 		assert.NoError(t, err)
 
-		assert.NoError(t, tx.FromUTXOs(&tbc.UTXO{
+		assert.NoError(t, tx.FromUTXOs(&transaction.UTXO{
 			TxID:          txID,
 			LockingScript: scr1,
 			Vout:          0,
 			Satoshis:      1000,
-		}, &tbc.UTXO{
+		}, &transaction.UTXO{
 			TxID:          txID2,
 			LockingScript: script2,
 			Vout:          1,
@@ -160,24 +160,24 @@ func TestTx_FromUTXOs(t *testing.T) {
 func TestTx_Fund(t *testing.T) {
 	t.Parallel()
 	tests := map[string]struct {
-		tx                      *tbc.Tx
-		utxos                   []*tbc.UTXO
-		utxoGetterFuncOverrider func([]*tbc.UTXO) tbc.UTXOGetterFunc
+		tx                      *transaction.Tx
+		utxos                   []*transaction.UTXO
+		utxoGetterFuncOverrider func([]*transaction.UTXO) transaction.UTXOGetterFunc
 		expTotalInputs          int
 		expErr                  error
 	}{
 		"tx with exact inputs and surplus inputs is covered": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 1500))
 				return tx
 			}(),
-			utxos: func() []*tbc.UTXO {
+			utxos: func() []*transaction.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
 				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
-				return []*tbc.UTXO{{
+				return []*transaction.UTXO{{
 					txid, 0, script, 1000, 0xffffff,
 				}, {
 					txid, 0, script, 1000, 0xffffff,
@@ -186,17 +186,17 @@ func TestTx_Fund(t *testing.T) {
 			expTotalInputs: 2,
 		},
 		"tx with extra inputs and surplus inputs is covered with all utxos": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 1500))
 				return tx
 			}(),
-			utxos: func() []*tbc.UTXO {
+			utxos: func() []*transaction.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
 				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
-				return []*tbc.UTXO{{
+				return []*transaction.UTXO{{
 					txid, 0, script, 1000, 0xffffff,
 				}, {
 					txid, 0, script, 1000, 0xffffff,
@@ -207,22 +207,22 @@ func TestTx_Fund(t *testing.T) {
 			expTotalInputs: 3,
 		},
 		"tx with extra inputs and surplus inputs that returns correct amount is covered with minimum needed utxos": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 1500))
 				return tx
 			}(),
-			utxoGetterFuncOverrider: func(utxos []*tbc.UTXO) tbc.UTXOGetterFunc {
-				return func(ctx context.Context, satoshis uint64) ([]*tbc.UTXO, error) {
+			utxoGetterFuncOverrider: func(utxos []*transaction.UTXO) transaction.UTXOGetterFunc {
+				return func(ctx context.Context, satoshis uint64) ([]*transaction.UTXO, error) {
 					return utxos[:2], nil
 				}
 			},
-			utxos: func() []*tbc.UTXO {
+			utxos: func() []*transaction.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
 				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
-				return []*tbc.UTXO{{
+				return []*transaction.UTXO{{
 					txid, 0, script, 1000, 0xffffff,
 				}, {
 					txid, 0, script, 1000, 0xffffff,
@@ -233,17 +233,17 @@ func TestTx_Fund(t *testing.T) {
 			expTotalInputs: 2,
 		},
 		"tx with exact input satshis is covered": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 1500))
 				return tx
 			}(),
-			utxos: func() []*tbc.UTXO {
+			utxos: func() []*transaction.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
 				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
-				return []*tbc.UTXO{{
+				return []*transaction.UTXO{{
 					txid, 0, script, 1000, 0xffffff,
 				}, {
 					txid, 0, script, 1000, 0xffffff,
@@ -252,17 +252,17 @@ func TestTx_Fund(t *testing.T) {
 			expTotalInputs: 2,
 		},
 		"tx with large amount of satoshis is covered with all utxos": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 5000))
 				return tx
 			}(),
-			utxos: func() []*tbc.UTXO {
+			utxos: func() []*transaction.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
 				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
-				return []*tbc.UTXO{{
+				return []*transaction.UTXO{{
 					txid, 0, script, 500, 0xffffff,
 				}, {
 					txid, 0, script, 670, 0xffffff,
@@ -283,25 +283,25 @@ func TestTx_Fund(t *testing.T) {
 			expTotalInputs: 8,
 		},
 		"tx with large amount of satoshis is covered with needed utxos": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 5000))
 				return tx
 			}(),
-			utxoGetterFuncOverrider: func(utxos []*tbc.UTXO) tbc.UTXOGetterFunc {
-				utxosCopy := make([]*tbc.UTXO, len(utxos))
+			utxoGetterFuncOverrider: func(utxos []*transaction.UTXO) transaction.UTXOGetterFunc {
+				utxosCopy := make([]*transaction.UTXO, len(utxos))
 				copy(utxosCopy, utxos)
-				return func(ctx context.Context, sat uint64) ([]*tbc.UTXO, error) {
+				return func(ctx context.Context, sat uint64) ([]*transaction.UTXO, error) {
 					defer func() { utxosCopy = utxosCopy[1:] }()
 					return utxosCopy[:1], nil
 				}
 			},
-			utxos: func() []*tbc.UTXO {
+			utxos: func() []*transaction.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
 				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
-				return []*tbc.UTXO{{
+				return []*transaction.UTXO{{
 					txid, 0, script, 500, 0xffffff,
 				}, {
 					txid, 0, script, 670, 0xffffff,
@@ -322,26 +322,26 @@ func TestTx_Fund(t *testing.T) {
 			expTotalInputs: 7,
 		},
 		"getter with no utxos error": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 1500))
 				return tx
 			}(),
-			utxos:  []*tbc.UTXO{},
-			expErr: tbc.ErrInsufficientFunds,
+			utxos:  []*transaction.UTXO{},
+			expErr: transaction.ErrInsufficientFunds,
 		},
 		"getter with insufficient utxos errors": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 25400))
 				return tx
 			}(),
-			utxos: func() []*tbc.UTXO {
+			utxos: func() []*transaction.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
 				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
-				return []*tbc.UTXO{{
+				return []*transaction.UTXO{{
 					txid, 0, script, 500, 0xffffff,
 				}, {
 					txid, 0, script, 670, 0xffffff,
@@ -359,33 +359,33 @@ func TestTx_Fund(t *testing.T) {
 					txid, 0, script, 650, 0xffffff,
 				}}
 			}(),
-			expErr: tbc.ErrInsufficientFunds,
+			expErr: transaction.ErrInsufficientFunds,
 		},
 		"error is returned to the user": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 100))
 				return tx
 			}(),
-			utxoGetterFuncOverrider: func([]*tbc.UTXO) tbc.UTXOGetterFunc {
-				return func(context.Context, uint64) ([]*tbc.UTXO, error) {
+			utxoGetterFuncOverrider: func([]*transaction.UTXO) transaction.UTXOGetterFunc {
+				return func(context.Context, uint64) ([]*transaction.UTXO, error) {
 					return nil, errors.New("custom error")
 				}
 			},
 			expErr: errors.New("custom error"),
 		},
 		"tx with large amount of satoshis is covered, with multiple iterations": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 5000))
 				return tx
 			}(),
-			utxos: func() []*tbc.UTXO {
+			utxos: func() []*transaction.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
 				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
-				return []*tbc.UTXO{{
+				return []*transaction.UTXO{{
 					txid, 0, script, 500, 0xffffff,
 				}, {
 					txid, 0, script, 670, 0xffffff,
@@ -403,9 +403,9 @@ func TestTx_Fund(t *testing.T) {
 					txid, 0, script, 650, 0xffffff,
 				}}
 			}(),
-			utxoGetterFuncOverrider: func(utxos []*tbc.UTXO) tbc.UTXOGetterFunc {
+			utxoGetterFuncOverrider: func(utxos []*transaction.UTXO) transaction.UTXOGetterFunc {
 				idx := 0
-				return func(context.Context, uint64) ([]*tbc.UTXO, error) {
+				return func(context.Context, uint64) ([]*transaction.UTXO, error) {
 					defer func() { idx++ }()
 					return utxos[idx : idx+1], nil
 				}
@@ -416,11 +416,11 @@ func TestTx_Fund(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			iptFn := func() tbc.UTXOGetterFunc {
+			iptFn := func() transaction.UTXOGetterFunc {
 				idx := 0
-				return func(ctx context.Context, deficit uint64) ([]*tbc.UTXO, error) {
+				return func(ctx context.Context, deficit uint64) ([]*transaction.UTXO, error) {
 					if idx == len(test.utxos) {
-						return nil, tbc.ErrNoUTXO
+						return nil, transaction.ErrNoUTXO
 					}
 					defer func() { idx += len(test.utxos) }()
 					return test.utxos, nil
@@ -430,7 +430,7 @@ func TestTx_Fund(t *testing.T) {
 				iptFn = test.utxoGetterFuncOverrider(test.utxos)
 			}
 
-			err := test.tx.Fund(context.Background(), tbc.NewFeeQuote(), iptFn)
+			err := test.tx.Fund(context.Background(), transaction.NewFeeQuote(), iptFn)
 			if test.expErr != nil {
 				assert.Error(t, err)
 				assert.EqualError(t, err, test.expErr.Error())
@@ -446,24 +446,24 @@ func TestTx_Fund(t *testing.T) {
 func TestTx_Fund_Deficit(t *testing.T) {
 	t.Parallel()
 	tests := map[string]struct {
-		utxos       []*tbc.UTXO
+		utxos       []*transaction.UTXO
 		expDeficits []uint64
 		iteration   int
-		tx          *tbc.Tx
+		tx          *transaction.Tx
 	}{
 		"1 output worth 5000, 3 utxos worth 6000": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 5000))
 
 				return tx
 			}(),
-			utxos: func() []*tbc.UTXO {
+			utxos: func() []*transaction.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
 				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
-				return []*tbc.UTXO{{
+				return []*transaction.UTXO{{
 					txid, 0, script, 2000, 0xffffff,
 				}, {
 					txid, 0, script, 2000, 0xffffff,
@@ -475,18 +475,18 @@ func TestTx_Fund_Deficit(t *testing.T) {
 			expDeficits: []uint64{5022, 3096, 1170},
 		},
 		"1 output worth 5000, 3 utxos worth 6000, iterations of 2": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 5000))
 
 				return tx
 			}(),
-			utxos: func() []*tbc.UTXO {
+			utxos: func() []*transaction.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
 				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
-				return []*tbc.UTXO{{
+				return []*transaction.UTXO{{
 					txid, 0, script, 2000, 0xffffff,
 				}, {
 					txid, 0, script, 2000, 0xffffff,
@@ -498,8 +498,8 @@ func TestTx_Fund_Deficit(t *testing.T) {
 			expDeficits: []uint64{5022, 1170},
 		},
 		"5 outputs worth 35000, 12 utxos worth 37000": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 5000))
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 10000))
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 7000))
@@ -508,12 +508,12 @@ func TestTx_Fund_Deficit(t *testing.T) {
 
 				return tx
 			}(),
-			utxos: func() []*tbc.UTXO {
+			utxos: func() []*transaction.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
 				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
-				return []*tbc.UTXO{{
+				return []*transaction.UTXO{{
 					txid, 0, script, 2000, 0xffffff,
 				}, {
 					txid, 0, script, 2000, 0xffffff,
@@ -541,8 +541,8 @@ func TestTx_Fund_Deficit(t *testing.T) {
 			expDeficits: []uint64{35090, 33164, 31238, 29312, 27386, 23460, 21534, 15608, 11682, 9756, 1830},
 		},
 		"5 outputs worth 35000, 12 utxos worth 37000, iteration of 3": {
-			tx: func() *tbc.Tx {
-				tx := tbc.NewTx()
+			tx: func() *transaction.Tx {
+				tx := transaction.NewTx()
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 5000))
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 10000))
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 7000))
@@ -551,12 +551,12 @@ func TestTx_Fund_Deficit(t *testing.T) {
 
 				return tx
 			}(),
-			utxos: func() []*tbc.UTXO {
+			utxos: func() []*transaction.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
 				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
-				return []*tbc.UTXO{{
+				return []*transaction.UTXO{{
 					txid, 0, script, 2000, 0xffffff,
 				}, {
 					txid, 0, script, 2000, 0xffffff,
@@ -588,9 +588,9 @@ func TestTx_Fund_Deficit(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			deficits := make([]uint64, 0)
-			test.tx.Fund(context.Background(), tbc.NewFeeQuote(), func(ctx context.Context, deficit uint64) ([]*tbc.UTXO, error) {
+			test.tx.Fund(context.Background(), transaction.NewFeeQuote(), func(ctx context.Context, deficit uint64) ([]*transaction.UTXO, error) {
 				if len(test.utxos) == 0 {
-					return nil, tbc.ErrNoUTXO
+					return nil, transaction.ErrNoUTXO
 				}
 				step := int(math.Min(float64(test.iteration), float64(len(test.utxos))))
 				defer func() {
@@ -612,14 +612,14 @@ func TestTx_FillInput(t *testing.T) {
 	tests := map[string]struct {
 		inputIdx uint32
 		shf      sighash.Flag
-		unlocker tbc.Unlocker
+		unlocker transaction.Unlocker
 		expHex   string
 		expErr   error
 	}{
 		"standard unlock": {
 			inputIdx: 0,
 			shf:      sighash.AllForkID,
-			unlocker: func() tbc.Unlocker {
+			unlocker: func() transaction.Unlocker {
 				var wif *WIF
 				wif, err := DecodeWIF("L3MhnEn1pLWcggeYLk9jdkvA2wUK1iWwwrGkBbgQRqv6HPCdRxuw")
 				assert.NoError(t, err)
@@ -630,7 +630,7 @@ func TestTx_FillInput(t *testing.T) {
 		},
 		"sighash all is used as default": {
 			inputIdx: 0,
-			unlocker: func() tbc.Unlocker {
+			unlocker: func() transaction.Unlocker {
 				var wif *WIF
 				wif, err := DecodeWIF("L3MhnEn1pLWcggeYLk9jdkvA2wUK1iWwwrGkBbgQRqv6HPCdRxuw")
 				assert.NoError(t, err)
@@ -642,22 +642,22 @@ func TestTx_FillInput(t *testing.T) {
 		"no unlocker errors": {
 			inputIdx: 0,
 			shf:      sighash.AllForkID,
-			expErr:   tbc.ErrNoUnlocker,
+			expErr:   transaction.ErrNoUnlocker,
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			tx := tbc.NewTx()
+			tx := transaction.NewTx()
 			assert.NoError(t, tx.From(
 				"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
 				0,
 				"76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac",
 				4000000,
 			))
-			assert.NoError(t, tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", tbc.NewFeeQuote()))
+			assert.NoError(t, tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", transaction.NewFeeQuote()))
 
-			err := tx.FillInput(context.Background(), test.unlocker, tbc.UnlockerParams{
+			err := tx.FillInput(context.Background(), test.unlocker, transaction.UnlockerParams{
 				InputIdx:     test.inputIdx,
 				SigHashFlags: test.shf,
 			})
@@ -676,7 +676,7 @@ func TestTx_FillAllInputs(t *testing.T) {
 	t.Parallel()
 
 	t.Run("valid tx (basic)", func(t *testing.T) {
-		tx := tbc.NewTx()
+		tx := transaction.NewTx()
 		assert.NotNil(t, tx)
 
 		err := tx.From(
@@ -686,7 +686,7 @@ func TestTx_FillAllInputs(t *testing.T) {
 			4000000)
 		assert.NoError(t, err)
 
-		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", tbc.NewFeeQuote())
+		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", transaction.NewFeeQuote())
 		assert.NoError(t, err)
 
 		var wif *WIF
@@ -702,7 +702,7 @@ func TestTx_FillAllInputs(t *testing.T) {
 	})
 
 	t.Run("no input or output", func(t *testing.T) {
-		tx := tbc.NewTx()
+		tx := transaction.NewTx()
 		assert.NotNil(t, tx)
 
 		rawTxBefore := tx.String()

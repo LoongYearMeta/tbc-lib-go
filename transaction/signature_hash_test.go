@@ -1,10 +1,10 @@
-package tbc_test
+package transaction_test
 
 import (
 	"encoding/hex"
 	"testing"
 
-	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction"
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 	"github.com/stretchr/testify/assert"
@@ -56,7 +56,7 @@ func TestTx_CalcInputPreimage(t *testing.T) {
 
 	for _, test := range testVector {
 		t.Run(test.name, func(t *testing.T) {
-			tx, err := tbc.NewTxFromString(test.unsignedTx)
+			tx, err := transaction.NewTxFromString(test.unsignedTx)
 			assert.NoError(t, err)
 			assert.NotNil(t, tx)
 
@@ -146,7 +146,7 @@ func TestTx_CalcInputSignatureHash(t *testing.T) {
 
 	for _, test := range testVector {
 		t.Run(test.name, func(t *testing.T) {
-			tx, err := tbc.NewTxFromString(test.unsignedTx)
+			tx, err := transaction.NewTxFromString(test.unsignedTx)
 			assert.NoError(t, err)
 			assert.NotNil(t, tx)
 
@@ -209,7 +209,7 @@ func TestTx_CalcInputPreimageLegacy(t *testing.T) {
 
 	for _, test := range testVector {
 		t.Run(test.name, func(t *testing.T) {
-			tx, err := tbc.NewTxFromString(test.unsignedTx)
+			tx, err := transaction.NewTxFromString(test.unsignedTx)
 			assert.NoError(t, err)
 			assert.NotNil(t, tx)
 

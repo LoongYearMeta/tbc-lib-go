@@ -4,7 +4,7 @@ import (
 	"math/big"
 
 	"github.com/libsv/go-bk/bec"
-	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction"
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/script/interpreter/errs"
 	"github.com/LoongYearMeta/tbc-lib-go/script/interpreter/scriptflag"
@@ -35,9 +35,9 @@ type thread struct {
 	currOpcodeOff int // offset of the opcode currently being executed (pre-parse-advance snapshot of scriptOff)
 	lastCodeSep   int
 
-	tx         *tbc.Tx
+	tx         *transaction.Tx
 	inputIdx   int
-	prevOutput *tbc.Output
+	prevOutput *transaction.Output
 
 	numOps int
 
@@ -73,8 +73,8 @@ func createThread(opts *execOpts) (*thread, error) {
 type execOpts struct {
 	lockingScript   *script.Script
 	unlockingScript *script.Script
-	previousTxOut   *tbc.Output
-	tx              *tbc.Tx
+	previousTxOut   *transaction.Output
+	tx              *transaction.Tx
 	inputIdx        int
 	flags           scriptflag.Flag
 	debugger        Debugger

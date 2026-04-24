@@ -15,7 +15,7 @@ import (
 	"strings"
 	"testing"
 
-	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction"
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/script/interpreter/errs"
 	"github.com/LoongYearMeta/tbc-lib-go/script/interpreter/scriptflag"
@@ -303,33 +303,33 @@ func parseExpectedResult(expected string) ([]errs.ErrorCode, error) {
 
 // createSpendTx generates a basic spending transaction given the passed
 // signature and locking scripts.
-func createSpendingTx(sigScript, pkScript *script.Script, outputValue int64) *tbc.Tx {
+func createSpendingTx(sigScript, pkScript *script.Script, outputValue int64) *transaction.Tx {
 
-	coinbaseTx := &tbc.Tx{
+	coinbaseTx := &transaction.Tx{
 		Version:  1,
 		LockTime: 0,
-		Inputs: []*tbc.Input{{
+		Inputs: []*transaction.Input{{
 			PreviousTxOutIndex: ^uint32(0),
 			UnlockingScript:    script.NewFromBytes([]byte{script.Op0, script.Op0}),
 			SequenceNumber:     0xffffffff,
 		}},
-		Outputs: []*tbc.Output{{
+		Outputs: []*transaction.Output{{
 			Satoshis:      uint64(outputValue),
 			LockingScript: pkScript,
 		}},
 	}
 	coinbaseTx.Inputs[0].PreviousTxIDAdd(make([]byte, 32))
 
-	spendingTx := &tbc.Tx{
+	spendingTx := &transaction.Tx{
 		Version:  1,
 		LockTime: 0,
-		Inputs: []*tbc.Input{{
+		Inputs: []*transaction.Input{{
 			PreviousTxOutIndex: 0,
 			PreviousTxScript:   pkScript,
 			UnlockingScript:    sigScript,
 			SequenceNumber:     0xffffffff,
 		}},
-		Outputs: []*tbc.Output{{
+		Outputs: []*transaction.Output{{
 			Satoshis:      uint64(outputValue),
 			LockingScript: script.NewFromBytes([]byte{}),
 		}},
@@ -449,7 +449,7 @@ func TestScripts(t *testing.T) {
 		tx := createSpendingTx(scriptSig, scriptPubKey, inputAmt)
 
 		err = NewEngine().Execute(
-			WithTx(tx, 0, &tbc.Output{LockingScript: scriptPubKey, Satoshis: uint64(inputAmt)}),
+			WithTx(tx, 0, &transaction.Output{LockingScript: scriptPubKey, Satoshis: uint64(inputAmt)}),
 			WithFlags(flags),
 		)
 
@@ -542,7 +542,7 @@ testloop:
 			continue
 		}
 
-		tx, err := tbc.NewTxFromBytes(serializedTx)
+		tx, err := transaction.NewTxFromBytes(serializedTx)
 		if err != nil {
 			t.Errorf("bad test (arg 2 not msgtx %v) %d: %v", err,
 				i, test)
@@ -561,7 +561,7 @@ testloop:
 			continue
 		}
 
-		prevOuts := make(map[txIOKey]*tbc.Output)
+		prevOuts := make(map[txIOKey]*transaction.Output)
 		for j, iinput := range inputs {
 			input, ok := iinput.([]interface{})
 			if !ok {
@@ -615,7 +615,7 @@ testloop:
 				}
 			}
 
-			v := &tbc.Output{
+			v := &transaction.Output{
 				Satoshis:      uint64(inputValue),
 				LockingScript: script,
 			}
@@ -686,7 +686,7 @@ testloop:
 			continue
 		}
 
-		tx, err := tbc.NewTxFromBytes(serializedTx)
+		tx, err := transaction.NewTxFromBytes(serializedTx)
 		if err != nil {
 			t.Errorf("bad test (arg 2 not msgtx %v) %d: %v", err,
 				i, test)
@@ -705,7 +705,7 @@ testloop:
 			continue
 		}
 
-		prevOuts := make(map[txIOKey]*tbc.Output)
+		prevOuts := make(map[txIOKey]*transaction.Output)
 		for j, iinput := range inputs {
 			input, ok := iinput.([]interface{})
 			if !ok {
@@ -759,7 +759,7 @@ testloop:
 				}
 			}
 
-			v := &tbc.Output{
+			v := &transaction.Output{
 				Satoshis:      uint64(inputValue),
 				LockingScript: script,
 			}

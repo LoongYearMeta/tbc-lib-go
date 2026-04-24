@@ -1,4 +1,4 @@
-package tbc
+package transaction
 
 const (
 	// MaxTxInSequenceNum is the maximum sequence number the sequence field

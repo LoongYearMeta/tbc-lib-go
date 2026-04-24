@@ -9,7 +9,7 @@ import (
 
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bk/crypto"
-	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction"
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/script/interpreter/errs"
 	"github.com/LoongYearMeta/tbc-lib-go/script/interpreter/scriptflag"
@@ -667,7 +667,7 @@ func opcodeCheckLockTimeVerify(op *ParsedOpcode, t *thread) error {
 
 	// The lock time feature can also be disabled, thereby bypassing
 	// script.OpCHECKLOCKTIMEVERIFY, if every transaction input has been finalised by
-	// setting its sequence to the maximum value (tbc.MaxTxInSequenceNum).  This
+	// setting its sequence to the maximum value (transaction.MaxTxInSequenceNum).  This
 	// condition would result in the transaction being allowed into the blockchain
 	// making the opcode ineffective.
 	//
@@ -679,7 +679,7 @@ func opcodeCheckLockTimeVerify(op *ParsedOpcode, t *thread) error {
 	// NOTE: This implies that even if the transaction is not finalised due to
 	// another input being unlocked, the opcode execution will still fail when the
 	// input being used by the opcode is locked.
-	if t.tx.Inputs[t.inputIdx].SequenceNumber == tbc.MaxTxInSequenceNum {
+	if t.tx.Inputs[t.inputIdx].SequenceNumber == transaction.MaxTxInSequenceNum {
 		return errs.NewError(errs.ErrUnsatisfiedLockTime, "transaction input is finalised")
 	}
 
@@ -732,7 +732,7 @@ func opcodeCheckSequenceVerify(op *ParsedOpcode, t *thread) error {
 	// To provide for future soft-fork extensibility, if the
 	// operand has the disabled lock-time flag set,
 	// CHECKSEQUENCEVERIFY behaves as a NOP.
-	if sequence&int64(tbc.SequenceLockTimeDisabled) != 0 {
+	if sequence&int64(transaction.SequenceLockTimeDisabled) != 0 {
 		return nil
 	}
 
@@ -747,15 +747,15 @@ func opcodeCheckSequenceVerify(op *ParsedOpcode, t *thread) error {
 	// number does not have this bit set prevents using this property
 	// to get around a CHECKSEQUENCEVERIFY check.
 	txSequence := int64(t.tx.Inputs[t.inputIdx].SequenceNumber)
-	if txSequence&int64(tbc.SequenceLockTimeDisabled) != 0 {
+	if txSequence&int64(transaction.SequenceLockTimeDisabled) != 0 {
 		return errs.NewError(errs.ErrUnsatisfiedLockTime,
 			"transaction sequence has sequence locktime disabled bit set: 0x%x", txSequence)
 	}
 
 	// Mask off non-consensus bits before doing comparisons.
-	lockTimeMask := int64(tbc.SequenceLockTimeIsSeconds | tbc.SequenceLockTimeMask)
+	lockTimeMask := int64(transaction.SequenceLockTimeIsSeconds | transaction.SequenceLockTimeMask)
 
-	return verifyLockTime(txSequence&lockTimeMask, tbc.SequenceLockTimeIsSeconds, sequence&lockTimeMask)
+	return verifyLockTime(txSequence&lockTimeMask, transaction.SequenceLockTimeIsSeconds, sequence&lockTimeMask)
 }
 
 // opcodeToAltStack removes the top item from the main data stack and pushes it
@@ -2407,7 +2407,7 @@ func opcodePushMeta(op *ParsedOpcode, t *thread) error {
 		hash := sha256.Sum256(inputsCombined)
 		result = hash[:]
 	case 6: // current input data (same bytes as tbc-lib-js interpreter OP_PUSH_META case 6)
-		result = tbc.CurrentInputOutpointBytes(t.tx, t.inputIdx)
+		result = transaction.CurrentInputOutpointBytes(t.tx, t.inputIdx)
 		if len(result) != 40 {
 			return errs.NewError(errs.ErrInvalidStackOperation, "push meta 6: invalid tx or input index")
 		}

@@ -1,4 +1,4 @@
-package tbc
+package transaction
 
 import (
 	"github.com/LoongYearMeta/tbc-lib-go/script"

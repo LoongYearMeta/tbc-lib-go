@@ -11,7 +11,7 @@ import (
 	"math/big"
 	"testing"
 
-	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction"
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/script/interpreter/errs"
 	"github.com/LoongYearMeta/tbc-lib-go/script/interpreter/scriptflag"
@@ -337,13 +337,13 @@ func TestScriptNumInt64(t *testing.T) {
 func TestDisasmString(t *testing.T) {
 	unlockScr, _ := script.NewFromHexString("3105abcdef4280548004abcdefc2877451a0637c757451a0637c757451a0637c757451a0637c757451a0637c756868686868")
 	prev, _ := script.NewFromHexString("a91464902b04c3d9ea558b7f2edb24758b383343a2d587")
-	tx := tbc.NewTx()
-	in := &tbc.Input{
+	tx := transaction.NewTx()
+	in := &transaction.Input{
 		UnlockingScript: unlockScr,
 	}
 	tx.Inputs = append(tx.Inputs, in)
 	if err := NewEngine().Execute(
-		WithTx(tx, 0, &tbc.Output{LockingScript: prev}),
+		WithTx(tx, 0, &transaction.Output{LockingScript: prev}),
 		WithFlags(scriptflag.Bip16|scriptflag.VerifyCleanStack),
 	); err != nil {
 		t.Error(err)
