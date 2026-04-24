@@ -3,6 +3,7 @@
 .idea/*
 .vscode/*
 .DS_Store
+*~
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
@@ -16,11 +17,31 @@ todo.md
 # Distribution directory for releases
 dist
 
-# Converage
+# Build output (make build-go / make lint cache binaries here)
+bin/
+
+# Coverage
 coverage.txt
+coverage.html
+
+# Go test binaries / profiling dumps
+*.test
+*.prof
+*.pprof
 
 # vim
 *.swp
 
-# Go module cache
+# Go module / vendor caches
 .gomodcache/
+vendor/
+
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# AI assistant local state (CLAUDE.md is tracked; per-user settings are not)
+.claude/
+.aider*
+CLAUDE.md
