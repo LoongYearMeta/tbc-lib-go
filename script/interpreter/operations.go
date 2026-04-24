@@ -15,6 +15,7 @@ import (
 	"github.com/LoongYearMeta/tbc-lib-go/script/interpreter/scriptflag"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 	"github.com/LoongYearMeta/tbc-lib-go/util/partialsha256"
+	"github.com/LoongYearMeta/tbc-lib-go/util/pushmeta"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -2407,7 +2408,7 @@ func opcodePushMeta(op *ParsedOpcode, t *thread) error {
 		hash := sha256.Sum256(inputsCombined)
 		result = hash[:]
 	case 6: // current input data (same bytes as tbc-lib-js interpreter OP_PUSH_META case 6)
-		result = transaction.CurrentInputOutpointBytes(t.tx, t.inputIdx)
+		result = pushmeta.CurrentInputOutpointBytes(t.tx, t.inputIdx)
 		if len(result) != 40 {
 			return errs.NewError(errs.ErrInvalidStackOperation, "push meta 6: invalid tx or input index")
 		}

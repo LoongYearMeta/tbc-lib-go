@@ -1,11 +1,18 @@
-package transaction
+// Package pushmeta implements TBC's OP_PUSH_META helpers used by script
+// interpreter and covenant templates. Matches tbc-lib-js
+// lib/script/interpreter.js case 6 (OP_PUSH_META).
+package pushmeta
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+
+	"github.com/LoongYearMeta/tbc-lib-go/transaction"
+)
 
 // CurrentInputOutpointBytes returns the 40 bytes pushed by OP_6 OP_PUSH_META:
 // previous txid in wire (little-endian) order, then vout and sequence as uint32 LE.
 // Matches tbc-lib-js lib/script/interpreter.js case 6 (OP_PUSH_META).
-func CurrentInputOutpointBytes(tx *Tx, inputIdx int) []byte {
+func CurrentInputOutpointBytes(tx *transaction.Tx, inputIdx int) []byte {
 	if tx == nil || inputIdx < 0 || inputIdx >= len(tx.Inputs) {
 		return nil
 	}

@@ -1,4 +1,4 @@
-package tbc
+package ftunlock
 
 import (
 	"encoding/binary"
@@ -8,6 +8,7 @@ import (
 	"github.com/libsv/go-bk/crypto"
 
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction"
 	"github.com/LoongYearMeta/tbc-lib-go/util/partialsha256"
 )
 
@@ -82,7 +83,7 @@ func getSize(length int) []byte {
 
 // getPrePreOutputsData 获取 grandparent 的 outputs1/outputs2
 // 与 JS 一致：vout==0 时 outputs1=0x00 无 length；outputs2 空时为 0x00 无 length
-func getPrePreOutputsData(tx *Tx, vout int) (outputs1, outputs1len, outputs2, outputs2len []byte) {
+func getPrePreOutputsData(tx *transaction.Tx, vout int) (outputs1, outputs1len, outputs2, outputs2len []byte) {
 	if vout > 0 {
 		var buf1 []byte
 		for i := 0; i < vout; i++ {
@@ -114,7 +115,7 @@ func getPrePreOutputsData(tx *Tx, vout int) (outputs1, outputs1len, outputs2, ou
 
 // GetPrePreTxdata 获取 grandparent 交易的 txdata，用于 FT 解锁
 // 对应 JS ftunlock.getPrePreTxdata
-func GetPrePreTxdata(tx *Tx, vout int) (string, error) {
+func GetPrePreTxdata(tx *transaction.Tx, vout int) (string, error) {
 	var buf []byte
 	// vliolength: 10 (version + nLockTime + inputCount + outputCount 共 16 bytes)
 	buf = append(buf, 0x10)
@@ -199,7 +200,7 @@ func GetPrePreTxdata(tx *Tx, vout int) (string, error) {
 }
 
 // getPreOutputsData 获取 parent 的 outputs1/outputs2（outputs2 从 vout+2 开始，跳过 code 和 tape）
-func getPreOutputsData(tx *Tx, vout int) (outputs1, outputs1len, outputs2, outputs2len []byte) {
+func getPreOutputsData(tx *transaction.Tx, vout int) (outputs1, outputs1len, outputs2, outputs2len []byte) {
 	if vout > 0 {
 		var buf1 []byte
 		for i := 0; i < vout; i++ {
@@ -232,7 +233,7 @@ func getPreOutputsData(tx *Tx, vout int) (outputs1, outputs1len, outputs2, outpu
 
 // GetPreTxdata 获取 parent 交易的 txdata，用于 FT 解锁
 // 对应 JS ftunlock.getPreTxdata
-func GetPreTxdata(tx *Tx, vout int) (string, error) {
+func GetPreTxdata(tx *transaction.Tx, vout int) (string, error) {
 	if vout+1 >= len(tx.Outputs) {
 		return "", fmt.Errorf("vout+1 out of range")
 	}
@@ -304,7 +305,7 @@ func GetPreTxdata(tx *Tx, vout int) (string, error) {
 
 // GetCurrentTxdata 获取当前交易的 txdata，用于 FT 解锁
 // 对应 JS ftunlock.getCurrentTxdata
-func GetCurrentTxdata(tx *Tx, inputIndex int) (string, error) {
+func GetCurrentTxdata(tx *transaction.Tx, inputIndex int) (string, error) {
 	inputIndexMap := map[int]byte{0: 0x00, 1: 0x51, 2: 0x52, 3: 0x53, 4: 0x54, 5: 0x55}
 	endTag := byte(0x51)
 	var buf []byte
@@ -383,7 +384,7 @@ func GetCurrentTxdata(tx *Tx, inputIndex int) (string, error) {
 
 // GetCurrentInputsdata 获取当前交易的 inputs data
 // 对应 JS ftunlock.getCurrentInputsdata
-func GetCurrentInputsdata(tx *Tx) string {
+func GetCurrentInputsdata(tx *transaction.Tx) string {
 	var inputBuf []byte
 	for _, in := range tx.Inputs {
 		prevID := encoding.ReverseBytes(in.PreviousTxID())
@@ -400,7 +401,7 @@ func GetCurrentInputsdata(tx *Tx) string {
 
 // GetContractTxdata 获取合约交易数据
 // 对应 JS ftunlock.getContractTxdata（含 vout<0 时与 FT v2 swap 一致的全输出序列化分支）
-func GetContractTxdata(tx *Tx, vout int) (string, error) {
+func GetContractTxdata(tx *transaction.Tx, vout int) (string, error) {
 	var buf []byte
 	buf = append(buf, 0x10)
 	b := make([]byte, 4)

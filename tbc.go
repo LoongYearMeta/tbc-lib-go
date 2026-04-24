@@ -14,6 +14,8 @@ import (
 	"github.com/LoongYearMeta/tbc-lib-go/message"
 	"github.com/LoongYearMeta/tbc-lib-go/networks"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction"
+	"github.com/LoongYearMeta/tbc-lib-go/util/ftunlock"
+	"github.com/LoongYearMeta/tbc-lib-go/util/pushmeta"
 )
 
 // ======== networks ========
@@ -205,4 +207,21 @@ var (
 	EncryptFor  = ecies.EncryptFor
 	DecryptWith = ecies.DecryptWith
 	RandomBytes = ecies.RandomBytes
+)
+
+// ======== util/pushmeta ========
+
+var (
+	CurrentInputOutpointBytes = pushmeta.CurrentInputOutpointBytes
+)
+
+// ======== util/ftunlock ========
+
+var (
+	GetPreTxdata         = ftunlock.GetPreTxdata
+	GetPrePreTxdata      = ftunlock.GetPrePreTxdata
+	GetCurrentTxdata     = ftunlock.GetCurrentTxdata
+	GetCurrentInputsdata = ftunlock.GetCurrentInputsdata
+	GetContractTxdata    = ftunlock.GetContractTxdata
+	GetSizeHex           = ftunlock.GetSizeHex
 )

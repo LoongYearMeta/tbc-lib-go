@@ -1,10 +1,13 @@
-package tbc
+package pushmeta_test
 
 import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"testing"
+
+	"github.com/LoongYearMeta/tbc-lib-go/transaction"
+	"github.com/LoongYearMeta/tbc-lib-go/util/pushmeta"
 )
 
 func TestCurrentInputOutpointBytes(t *testing.T) {
@@ -14,16 +17,16 @@ func TestCurrentInputOutpointBytes(t *testing.T) {
 	if err != nil || len(displayID) != 32 {
 		t.Fatal(err)
 	}
-	tx := NewTx()
-	in := &Input{}
+	tx := transaction.NewTx()
+	in := &transaction.Input{}
 	if err := in.PreviousTxIDAdd(displayID); err != nil {
 		t.Fatal(err)
 	}
 	in.PreviousTxOutIndex = 0
 	in.SequenceNumber = 0xfffffffd // common for CLTV-style; any LE value
-	tx.Inputs = []*Input{in}
+	tx.Inputs = []*transaction.Input{in}
 
-	got := CurrentInputOutpointBytes(tx, 0)
+	got := pushmeta.CurrentInputOutpointBytes(tx, 0)
 	if len(got) != 40 {
 		t.Fatalf("len=%d", len(got))
 	}
