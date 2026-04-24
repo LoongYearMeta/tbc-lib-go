@@ -1,4 +1,4 @@
-package tbc
+package block
 
 import (
 	"encoding/binary"

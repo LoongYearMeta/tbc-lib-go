@@ -1,4 +1,4 @@
-package tbc
+package message
 
 // Message 实现（参考 tbc-lib-js 的 lib/message/message.js）
 //

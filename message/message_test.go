@@ -1,4 +1,4 @@
-package tbc
+package message
 
 import (
 	"encoding/base64"

@@ -8,7 +8,10 @@
 package tbc
 
 import (
+	"github.com/LoongYearMeta/tbc-lib-go/block"
+	"github.com/LoongYearMeta/tbc-lib-go/ecies"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
+	"github.com/LoongYearMeta/tbc-lib-go/message"
 	"github.com/LoongYearMeta/tbc-lib-go/networks"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction"
 )
@@ -121,14 +124,85 @@ var (
 	ErrUnknownFeeType        = transaction.ErrUnknownFeeType
 	ErrNoUTXO                = transaction.ErrNoUTXO
 	ErrInsufficientFunds     = transaction.ErrInsufficientFunds
-	// NOTE: Block-related sentinel errors (ErrBlockNil, ErrMerkleBlockNil, etc.)
-	// are currently declared in transaction/errors.go alongside these tx errors.
-	// They will be moved to block/errors.go in Phase 5. For now, re-export via transaction.
-	ErrBlockNil             = transaction.ErrBlockNil
-	ErrBlockTooShort        = transaction.ErrBlockTooShort
-	ErrBlockTxCountTooLarge = transaction.ErrBlockTxCountTooLarge
-	ErrBlockHeaderNil       = transaction.ErrBlockHeaderNil
-	ErrBlockHeaderTooShort  = transaction.ErrBlockHeaderTooShort
-	ErrMerkleBlockNil       = transaction.ErrMerkleBlockNil
-	ErrInvalidMerkleTree    = transaction.ErrInvalidMerkleTree
+)
+
+// ======== block ========
+
+type (
+	Block       = block.Block
+	BlockHeader = block.BlockHeader
+	MerkleBlock = block.MerkleBlock
+)
+
+// constructors
+var (
+	NewBlock                   = block.NewBlock
+	NewBlockFromBytes          = block.NewBlockFromBytes
+	NewBlockFromString         = block.NewBlockFromString
+	NewBlockFromRawBlock       = block.NewBlockFromRawBlock
+	NewBlockHeader             = block.NewBlockHeader
+	NewBlockHeaderFromBytes    = block.NewBlockHeaderFromBytes
+	NewBlockHeaderFromString   = block.NewBlockHeaderFromString
+	NewBlockHeaderFromRawBlock = block.NewBlockHeaderFromRawBlock
+	NewMerkleBlock             = block.NewMerkleBlock
+	NewMerkleBlockFromBytes    = block.NewMerkleBlockFromBytes
+	NewMerkleBlockFromString   = block.NewMerkleBlockFromString
+	ClampDifficulty            = block.ClampDifficulty
+)
+
+// block constants
+const (
+	MaxBlockSize              = block.MaxBlockSize
+	BlockStartOffset          = block.BlockStartOffset
+	GenesisBits               = block.GenesisBits
+	BlockHeaderSize           = block.BlockHeaderSize
+	BlockHeaderStartOffset    = block.BlockHeaderStartOffset
+	MaxBlockTimeOffsetSeconds = block.MaxBlockTimeOffsetSeconds
+)
+
+// block vars
+var (
+	NullHash    = block.NullHash
+	LargestHash = block.LargestHash
+)
+
+// block sentinels
+var (
+	ErrBlockNil             = block.ErrBlockNil
+	ErrBlockTooShort        = block.ErrBlockTooShort
+	ErrBlockTxCountTooLarge = block.ErrBlockTxCountTooLarge
+	ErrBlockHeaderNil       = block.ErrBlockHeaderNil
+	ErrBlockHeaderTooShort  = block.ErrBlockHeaderTooShort
+	ErrMerkleBlockNil       = block.ErrMerkleBlockNil
+	ErrInvalidMerkleTree    = block.ErrInvalidMerkleTree
+)
+
+// ======== message ========
+
+type Message = message.Message
+
+var (
+	NewMessageFromString     = message.NewMessageFromString
+	NewMessageFromBytes      = message.NewMessageFromBytes
+	FromString               = message.FromString
+	FromJSON                 = message.FromJSON
+	FromObject               = message.FromObject
+	SignMessage              = message.SignMessage
+	VerifyMessage            = message.VerifyMessage
+	VerifyMessageWithPubKey  = message.VerifyMessageWithPubKey
+	VerifyMessageWithAddress = message.VerifyMessageWithAddress
+)
+
+// ======== ecies ========
+
+type (
+	ECIES        = ecies.ECIES
+	ECIESOptions = ecies.ECIESOptions
+)
+
+var (
+	NewECIES    = ecies.NewECIES
+	EncryptFor  = ecies.EncryptFor
+	DecryptWith = ecies.DecryptWith
+	RandomBytes = ecies.RandomBytes
 )

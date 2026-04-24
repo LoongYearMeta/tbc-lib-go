@@ -1,4 +1,4 @@
-package tbc
+package block
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"github.com/libsv/go-bk/crypto"
 
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction"
 )
 
 const (
@@ -28,15 +29,15 @@ var (
 //
 // 对应 tbc-lib-js 的 Block 类，详见 docs/block.md。
 type Block struct {
-	Header       *BlockHeader // 区块头
-	Transactions []*Tx        // 交易列表
+	Header       *BlockHeader      // 区块头
+	Transactions []*transaction.Tx // 交易列表
 }
 
 // NewBlock returns an empty block.
 func NewBlock() *Block {
 	return &Block{
 		Header:       NewBlockHeader(),
-		Transactions: make([]*Tx, 0),
+		Transactions: make([]*transaction.Tx, 0),
 	}
 }
 
@@ -83,7 +84,7 @@ func (b *Block) ReadFrom(r io.Reader) (int64, error) {
 		return n, err
 	}
 
-	var txs Txs
+	var txs transaction.Txs
 	nTx, err := txs.ReadFrom(r)
 	if err != nil {
 		return n + nTx, err
@@ -115,9 +116,9 @@ func (b *Block) ReadFromBytes(bb []byte) (int, error) {
 		return 0, ErrBlockTxCountTooLarge
 	}
 
-	transactions := make([]*Tx, 0, txCount)
+	transactions := make([]*transaction.Tx, 0, txCount)
 	for i := uint64(0); i < uint64(txCount); i++ {
-		tx, used, txErr := NewTxFromStream(bb[offset:])
+		tx, used, txErr := transaction.NewTxFromStream(bb[offset:])
 		if txErr != nil {
 			return 0, txErr
 		}

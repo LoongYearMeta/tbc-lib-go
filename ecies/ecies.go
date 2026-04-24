@@ -1,4 +1,4 @@
-package tbc
+package ecies
 
 // ECIES 实现（参考 tbc-lib-js 的 electrum-ecies.js）
 //

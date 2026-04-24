@@ -14,13 +14,6 @@ var (
 	ErrUnsupportedScript    = errors.New("non-P2PKH input used in the tx - unsupported")
 	ErrInvalidScriptType    = errors.New("invalid script type")
 	ErrNoUnlocker           = errors.New("unlocker not supplied")
-	ErrBlockNil             = errors.New("block is nil")
-	ErrBlockTooShort        = errors.New("too short to be a block")
-	ErrBlockTxCountTooLarge = errors.New("block tx count too large")
-	ErrBlockHeaderNil       = errors.New("block header is nil")
-	ErrBlockHeaderTooShort  = errors.New("too short to be a block header")
-	ErrMerkleBlockNil       = errors.New("merkleblock is nil")
-	ErrInvalidMerkleTree    = errors.New("invalid merkle tree")
 )
 
 // Sentinel errors reported by inputs.

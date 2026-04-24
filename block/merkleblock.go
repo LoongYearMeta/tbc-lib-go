@@ -1,4 +1,4 @@
-package tbc
+package block
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"github.com/libsv/go-bk/crypto"
 
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction"
 )
 
 // MerkleBlock wraps a partial merkle tree payload.
@@ -213,7 +214,7 @@ func (m *MerkleBlock) HasTransaction(tx interface{}) bool {
 	switch v := tx.(type) {
 	case string:
 		hash = v
-	case *Tx:
+	case *transaction.Tx:
 		if v == nil {
 			return false
 		}
