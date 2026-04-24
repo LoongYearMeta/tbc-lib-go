@@ -1,71 +1,26 @@
+// Package sighash is preserved as a forwarder for backwards compatibility.
+// New code should import "github.com/LoongYearMeta/tbc-lib-go/transaction/sighash" directly.
 package sighash
 
-// Flag represents hash type bits at the end of a signature.
-type Flag uint8
+import sh "github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 
-// SIGHASH type bits from the end of a signature.
-// see: https://wiki.bitcoinsv.io/index.php/SIGHASH_flags
+// Flag is an alias for transaction/sighash.Flag.
+type Flag = sh.Flag
+
+// Re-exported SIGHASH flag constants.
 const (
-	Old          Flag = 0x0
-	All          Flag = 0x1
-	None         Flag = 0x2
-	Single       Flag = 0x3
-	AnyOneCanPay Flag = 0x80
+	Old          = sh.Old
+	All          = sh.All
+	None         = sh.None
+	Single       = sh.Single
+	AnyOneCanPay = sh.AnyOneCanPay
 
-	// Currently, all BitCoin (SV) transactions require an additional SIGHASH flag (after UAHF)
+	AllForkID          = sh.AllForkID
+	NoneForkID         = sh.NoneForkID
+	SingleForkID       = sh.SingleForkID
+	AnyOneCanPayForkID = sh.AnyOneCanPayForkID
 
-	AllForkID          Flag = 0x1 | 0x40
-	NoneForkID         Flag = 0x2 | 0x40
-	SingleForkID       Flag = 0x3 | 0x40
-	AnyOneCanPayForkID Flag = 0x80 | 0x40
+	ForkID = sh.ForkID
 
-	// ForkID is the replay protected signature hash flag
-	// used by the Uahf hardfork.
-
-	ForkID Flag = 0x40
-
-	// Mask defines the number of bits of the hash type which is used
-	// to identify which outputs are signed.
-	Mask = 0x1f
+	Mask = sh.Mask
 )
-
-// Has returns true if contains the provided flag.
-func (f Flag) Has(shf Flag) bool {
-	return f&shf == shf
-}
-
-// HasWithMask returns true if contains the provided flag masked
-func (f Flag) HasWithMask(shf Flag) bool {
-	return f&Mask == shf
-}
-
-func (f Flag) String() string {
-	switch f { // nolint:exhaustive // not needed
-	case All:
-		return "ALL"
-	case None:
-		return "NONE"
-	case Single:
-		return "SINGLE"
-	case All | AnyOneCanPay:
-		return "ALL|ANYONECANPAY"
-	case None | AnyOneCanPay:
-		return "NONE|ANYONECANPAY"
-	case Single | AnyOneCanPay:
-		return "SINGLE|ANYONECANPAY"
-	case AllForkID:
-		return "ALL|FORKID"
-	case NoneForkID:
-		return "NONE|FORKID"
-	case SingleForkID:
-		return "SINGLE|FORKID"
-	case AllForkID | AnyOneCanPay:
-		return "ALL|FORKID|ANYONECANPAY"
-	case NoneForkID | AnyOneCanPay:
-		return "NONE|FORKID|ANYONECANPAY"
-	case SingleForkID | AnyOneCanPay:
-		return "SINGLE|FORKID|ANYONECANPAY"
-	}
-
-	return "ALL"
-}

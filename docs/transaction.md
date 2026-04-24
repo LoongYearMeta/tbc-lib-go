@@ -4,6 +4,12 @@
 
 `tbc.Tx` 对应官方库中的 `Transaction`：管理输入、输出、版本号与 `LockTime`（`uint32`），支持链式构造与序列化。
 
+> 两种 import 风格任选：
+> - **推荐（门面）**：`import tbc "github.com/LoongYearMeta/tbc-lib-go"` 直接用 `tbc.X`，下游零改动。
+> - **进阶（子包）**：按需 import 对应子包（本主题对应 `.../transaction`），享受更细粒度的依赖控制。
+>
+> 本文档示例以**门面风格**为主。
+
 ## 交易结构
 
 - **Inputs**：对前序输出的引用与解锁脚本

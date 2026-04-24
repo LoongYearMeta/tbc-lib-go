@@ -4,6 +4,12 @@
 
 `bscript.Script` 用于构造、解析与识别常见锁定脚本；验证时由 `bscript/interpreter` 执行拼接后的脚本。
 
+> 两种 import 风格任选：
+> - **推荐（门面）**：`import tbc "github.com/LoongYearMeta/tbc-lib-go"` 直接用 `tbc.X`，下游零改动。
+> - **进阶（子包）**：按需 import 对应子包（本主题对应 `.../script`），享受更细粒度的依赖控制。
+>
+> 本文档示例以**门面风格**为主。`bscript/` 包保留作为 forwarder，指向新的 `script/` 子包，老 import 仍可用。
+
 ## 类型常量（字符串标签）
 
 ```go
