@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
@@ -34,8 +34,8 @@ const DefaultSequenceNumber uint32 = 0xFFFFFFFF
 type Input struct {
 	previousTxID       []byte
 	PreviousTxSatoshis uint64
-	PreviousTxScript   *bscript.Script
-	UnlockingScript    *bscript.Script
+	PreviousTxScript   *script.Script
+	UnlockingScript    *script.Script
 	PreviousTxOutIndex uint32
 	SequenceNumber     uint32
 }
@@ -66,8 +66,8 @@ func (i *Input) ReadFrom(r io.Reader) (int64, error) {
 		return bytesRead, err
 	}
 
-	script := make([]byte, l)
-	n, err = io.ReadFull(r, script)
+	scriptBytes := make([]byte, l)
+	n, err = io.ReadFull(r, scriptBytes)
 	bytesRead += int64(n)
 	if err != nil {
 		return bytesRead, errors.Wrapf(err, "script(%d): got %d bytes", l, n)
@@ -82,7 +82,7 @@ func (i *Input) ReadFrom(r io.Reader) (int64, error) {
 
 	i.previousTxID = encoding.ReverseBytes(previousTxID)
 	i.PreviousTxOutIndex = binary.LittleEndian.Uint32(prevIndex)
-	i.UnlockingScript = bscript.NewFromBytes(script)
+	i.UnlockingScript = script.NewFromBytes(scriptBytes)
 	i.SequenceNumber = binary.LittleEndian.Uint32(sequence)
 
 	return bytesRead, nil

@@ -6,7 +6,7 @@ import (
 
 	"github.com/libsv/go-bk/crypto"
 
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 )
@@ -191,8 +191,8 @@ func (tx *Tx) CalcInputPreimageLegacy(inputNumber uint32, shf sighash.Flag) ([]b
 		if i == int(inputNumber) {
 			txCopy.Inputs[i].PreviousTxScript = tx.Inputs[inputNumber].PreviousTxScript
 		} else {
-			txCopy.Inputs[i].UnlockingScript = &bscript.Script{}
-			txCopy.Inputs[i].PreviousTxScript = &bscript.Script{}
+			txCopy.Inputs[i].UnlockingScript = &script.Script{}
+			txCopy.Inputs[i].PreviousTxScript = &script.Script{}
 		}
 	}
 
@@ -207,7 +207,7 @@ func (tx *Tx) CalcInputPreimageLegacy(inputNumber uint32, shf sighash.Flag) ([]b
 		txCopy.Outputs = txCopy.Outputs[:inputNumber+1]
 		for i := 0; i < int(inputNumber); i++ {
 			txCopy.Outputs[i].Satoshis = 18446744073709551615 // -1 but underflowed
-			txCopy.Outputs[i].LockingScript = &bscript.Script{}
+			txCopy.Outputs[i].LockingScript = &script.Script{}
 		}
 
 		for i := range txCopy.Inputs {

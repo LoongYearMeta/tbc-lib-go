@@ -6,7 +6,7 @@ import (
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 	bkcrypto "github.com/libsv/go-bk/crypto"
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 )
 
 func TestMessage_SignAndVerify(t *testing.T) {
@@ -96,7 +96,7 @@ func TestVerifyMessageWithAddress(t *testing.T) {
 	}
 
 	pub := priv.PubKey()
-	addr, err := bscript.NewAddressFromPublicKeyHash(bkcrypto.Hash160(pub.SerializeCompressed()), true)
+	addr, err := script.NewAddressFromPublicKeyHash(bkcrypto.Hash160(pub.SerializeCompressed()), true)
 	if err != nil {
 		t.Fatalf("NewAddressFromPublicKeyHash failed: %v", err)
 	}

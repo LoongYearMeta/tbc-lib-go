@@ -3,7 +3,7 @@ package tbc
 import (
 	"fmt"
 
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
@@ -11,7 +11,7 @@ import (
 // version+locktime(8) + varint(nIn) + varint(nOut) + 各 input + 各 output(8+varint+script)。
 // P2PKH 输入按 180 字节（BASE 40 + SCRIPT_MAX 140）；其它输入按 41 字节。
 // extraChangeScript 非 nil 时额外计入一笔即将写入的找零输出（与 JS getFee 前带 0 sat 找零输出的估算一致）。
-func estimateSizeLikeJS(tx *Tx, extraChangeScript *bscript.Script) int {
+func estimateSizeLikeJS(tx *Tx, extraChangeScript *script.Script) int {
 	nOut := len(tx.Outputs)
 	if extraChangeScript != nil {
 		nOut++

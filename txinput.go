@@ -10,7 +10,7 @@ import (
 	"github.com/libsv/go-bk/crypto"
 	"github.com/pkg/errors"
 
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 )
@@ -44,7 +44,7 @@ func newInputFromBytes(bytes []byte) (*Input, int, error) {
 		previousTxID:       encoding.ReverseBytes(bytes[0:32]),
 		PreviousTxOutIndex: binary.LittleEndian.Uint32(bytes[32:36]),
 		SequenceNumber:     binary.LittleEndian.Uint32(bytes[offset+int(l):]),
-		UnlockingScript:    bscript.NewFromBytes(bytes[offset : offset+int(l)]),
+		UnlockingScript:    script.NewFromBytes(bytes[offset : offset+int(l)]),
 	}, totalLength, nil
 }
 
@@ -90,7 +90,7 @@ func (tx *Tx) AddP2PKHInputsFromTx(pvsTx *Tx, matchPK []byte) error {
 // finalised sequence number (0xFFFFFFFF). If you want a different nSeq, change it manually
 // afterwards.
 func (tx *Tx) From(prevTxID string, vout uint32, prevTxLockingScript string, satoshis uint64) error {
-	pts, err := bscript.NewFromHexString(prevTxLockingScript)
+	pts, err := script.NewFromHexString(prevTxLockingScript)
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func (tx *Tx) SequenceHash() []byte {
 
 // InsertInputUnlockingScript applies a script to the transaction at a specific index in
 // unlocking script field.
-func (tx *Tx) InsertInputUnlockingScript(index uint32, s *bscript.Script) error {
+func (tx *Tx) InsertInputUnlockingScript(index uint32, s *script.Script) error {
 	if tx.Inputs[index] != nil {
 		tx.Inputs[index].UnlockingScript = s
 		return nil

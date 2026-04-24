@@ -9,7 +9,7 @@ import (
 	"github.com/libsv/go-bk/crypto"
 	"github.com/pkg/errors"
 
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
@@ -29,7 +29,7 @@ func newOutputFromBytes(bytes []byte) (*Output, int, error) {
 		return nil, 0, fmt.Errorf("%w < 8 + script", ErrInputTooShort)
 	}
 
-	s := bscript.NewFromBytes(bytes[offset:totalLength])
+	s := script.NewFromBytes(bytes[offset:totalLength])
 
 	return &Output{
 		Satoshis:      binary.LittleEndian.Uint64(bytes[0:8]),
@@ -47,7 +47,7 @@ func (tx *Tx) TotalOutputSatoshis() (total uint64) {
 
 // AddP2PKHOutputFromPubKeyHashStr makes an output to a PKH with a value.
 func (tx *Tx) AddP2PKHOutputFromPubKeyHashStr(publicKeyHash string, satoshis uint64) error {
-	s, err := bscript.NewP2PKHFromPubKeyHashStr(publicKeyHash)
+	s, err := script.NewP2PKHFromPubKeyHashStr(publicKeyHash)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (tx *Tx) AddP2PKHOutputFromPubKeyHashStr(publicKeyHash string, satoshis uin
 
 // AddP2PKHOutputFromPubKeyBytes makes an output to a PKH with a value.
 func (tx *Tx) AddP2PKHOutputFromPubKeyBytes(publicKeyBytes []byte, satoshis uint64) error {
-	s, err := bscript.NewP2PKHFromPubKeyBytes(publicKeyBytes)
+	s, err := script.NewP2PKHFromPubKeyBytes(publicKeyBytes)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (tx *Tx) AddP2PKHOutputFromPubKeyBytes(publicKeyBytes []byte, satoshis uint
 
 // AddP2PKHOutputFromPubKeyStr makes an output to a PKH with a value.
 func (tx *Tx) AddP2PKHOutputFromPubKeyStr(publicKey string, satoshis uint64) error {
-	s, err := bscript.NewP2PKHFromPubKeyStr(publicKey)
+	s, err := script.NewP2PKHFromPubKeyStr(publicKey)
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (tx *Tx) AddP2PKHOutputFromPubKeyStr(publicKey string, satoshis uint64) err
 
 // AddP2PKHOutputFromAddress makes an output to a PKH with a value.
 func (tx *Tx) AddP2PKHOutputFromAddress(addr string, satoshis uint64) error {
-	s, err := bscript.NewP2PKHFromAddress(addr)
+	s, err := script.NewP2PKHFromAddress(addr)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (tx *Tx) AddP2PKHOutputFromAddress(addr string, satoshis uint64) error {
 }
 
 // AddP2PKHOutputFromScript makes an output to a P2PKH script paid to the provided locking script with a value.
-func (tx *Tx) AddP2PKHOutputFromScript(script *bscript.Script, satoshis uint64) error {
+func (tx *Tx) AddP2PKHOutputFromScript(script *script.Script, satoshis uint64) error {
 	if !script.IsP2PKH() {
 		return errors.Wrapf(ErrInvalidScriptType, "'%s' is not a valid P2PKH script", script.ScriptType())
 	}
@@ -116,7 +116,7 @@ func (tx *Tx) AddP2PKHOutputFromScript(script *bscript.Script, satoshis uint64) 
 // AddP2PKHOutputFromBip32ExtKey generated a random P2PKH output script from a provided *bip32.ExtendedKey,
 // and add it to the receiving tx. The derviation path used is returned.
 func (tx *Tx) AddP2PKHOutputFromBip32ExtKey(privKey *bip32.ExtendedKey, satoshis uint64) (string, error) {
-	script, derivationPath, err := bscript.NewP2PKHFromBip32ExtKey(privKey)
+	script, derivationPath, err := script.NewP2PKHFromBip32ExtKey(privKey)
 	if err != nil {
 		return "", err
 	}
@@ -135,20 +135,20 @@ func (tx *Tx) AddHashPuzzleOutput(secret, publicKeyHash string, satoshis uint64)
 		return err
 	}
 
-	s := &bscript.Script{}
+	s := &script.Script{}
 
-	_ = s.AppendOpcodes(bscript.OpHASH160)
+	_ = s.AppendOpcodes(script.OpHASH160)
 	secretBytesHash := crypto.Hash160([]byte(secret))
 
 	if err = s.AppendPushData(secretBytesHash); err != nil {
 		return err
 	}
-	_ = s.AppendOpcodes(bscript.OpEQUALVERIFY, bscript.OpDUP, bscript.OpHASH160)
+	_ = s.AppendOpcodes(script.OpEQUALVERIFY, script.OpDUP, script.OpHASH160)
 
 	if err = s.AppendPushData(publicKeyHashBytes); err != nil {
 		return err
 	}
-	_ = s.AppendOpcodes(bscript.OpEQUALVERIFY, bscript.OpCHECKSIG)
+	_ = s.AppendOpcodes(script.OpEQUALVERIFY, script.OpCHECKSIG)
 
 	tx.AddOutput(&Output{
 		Satoshis:      satoshis,
@@ -181,9 +181,9 @@ func (tx *Tx) AddOpReturnPartsOutput(data [][]byte) error {
 }
 
 func createOpReturnOutput(data [][]byte) (*Output, error) {
-	s := &bscript.Script{}
+	s := &script.Script{}
 
-	_ = s.AppendOpcodes(bscript.OpFALSE, bscript.OpRETURN)
+	_ = s.AppendOpcodes(script.OpFALSE, script.OpRETURN)
 	if err := s.AppendPushDataArray(data); err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func (tx *Tx) AddOutput(output *Output) {
 
 // PayTo creates a new P2PKH output from a BitCoin address (base58)
 // and the satoshis amount and adds that to the transaction.
-func (tx *Tx) PayTo(script *bscript.Script, satoshis uint64) error {
+func (tx *Tx) PayTo(script *script.Script, satoshis uint64) error {
 	return tx.AddP2PKHOutputFromScript(script, satoshis)
 }
 

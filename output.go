@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
@@ -27,7 +27,7 @@ Txout-script / scriptPubKey   Script                                      <out-s
 // Output is a representation of a transaction output
 type Output struct {
 	Satoshis      uint64
-	LockingScript *bscript.Script
+	LockingScript *script.Script
 }
 
 // ReadFrom reads from the `io.Reader` into the `tbc.Output`.
@@ -49,15 +49,15 @@ func (o *Output) ReadFrom(r io.Reader) (int64, error) {
 		return bytesRead, err
 	}
 
-	script := make([]byte, l)
-	n, err = io.ReadFull(r, script)
+	scriptBytes := make([]byte, l)
+	n, err = io.ReadFull(r, scriptBytes)
 	bytesRead += int64(n)
 	if err != nil {
 		return bytesRead, errors.Wrapf(err, "lockingScript(%d): got %d bytes", l, n)
 	}
 
 	o.Satoshis = binary.LittleEndian.Uint64(satoshis)
-	o.LockingScript = bscript.NewFromBytes(script)
+	o.LockingScript = script.NewFromBytes(scriptBytes)
 
 	return bytesRead, nil
 }

@@ -9,7 +9,7 @@ import (
 
 	. "github.com/libsv/go-bk/wif"
 	tbc "github.com/LoongYearMeta/tbc-lib-go"
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 	"github.com/LoongYearMeta/tbc-lib-go/unlocker"
 	"github.com/stretchr/testify/assert"
@@ -96,7 +96,7 @@ func TestTx_FromUTXOs(t *testing.T) {
 
 	t.Run("one utxo", func(t *testing.T) {
 		tx := tbc.NewTx()
-		script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+		script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 		assert.NoError(t, err)
 
 		txID, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
@@ -119,19 +119,19 @@ func TestTx_FromUTXOs(t *testing.T) {
 
 	t.Run("multiple utxos", func(t *testing.T) {
 		tx := tbc.NewTx()
-		script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+		scr1, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 		assert.NoError(t, err)
 		txID, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 		assert.NoError(t, err)
 
-		script2, err := bscript.NewFromHexString("76a914eb0bd5edba389198e73f8efabddfc61666969ff788ac")
+		script2, err := script.NewFromHexString("76a914eb0bd5edba389198e73f8efabddfc61666969ff788ac")
 		assert.NoError(t, err)
 		txID2, err := hex.DecodeString("3c8edde27cb9a9132c22038dac4391496be9db16fd21351565cc1006966fdad5")
 		assert.NoError(t, err)
 
 		assert.NoError(t, tx.FromUTXOs(&tbc.UTXO{
 			TxID:          txID,
-			LockingScript: script,
+			LockingScript: scr1,
 			Vout:          0,
 			Satoshis:      1000,
 		}, &tbc.UTXO{
@@ -175,7 +175,7 @@ func TestTx_Fund(t *testing.T) {
 			utxos: func() []*tbc.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
-				script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
 				return []*tbc.UTXO{{
 					txid, 0, script, 1000, 0xffffff,
@@ -194,7 +194,7 @@ func TestTx_Fund(t *testing.T) {
 			utxos: func() []*tbc.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
-				script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
 				return []*tbc.UTXO{{
 					txid, 0, script, 1000, 0xffffff,
@@ -220,7 +220,7 @@ func TestTx_Fund(t *testing.T) {
 			utxos: func() []*tbc.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
-				script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
 				return []*tbc.UTXO{{
 					txid, 0, script, 1000, 0xffffff,
@@ -241,7 +241,7 @@ func TestTx_Fund(t *testing.T) {
 			utxos: func() []*tbc.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
-				script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
 				return []*tbc.UTXO{{
 					txid, 0, script, 1000, 0xffffff,
@@ -260,7 +260,7 @@ func TestTx_Fund(t *testing.T) {
 			utxos: func() []*tbc.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
-				script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
 				return []*tbc.UTXO{{
 					txid, 0, script, 500, 0xffffff,
@@ -299,7 +299,7 @@ func TestTx_Fund(t *testing.T) {
 			utxos: func() []*tbc.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
-				script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
 				return []*tbc.UTXO{{
 					txid, 0, script, 500, 0xffffff,
@@ -339,7 +339,7 @@ func TestTx_Fund(t *testing.T) {
 			utxos: func() []*tbc.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
-				script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
 				return []*tbc.UTXO{{
 					txid, 0, script, 500, 0xffffff,
@@ -383,7 +383,7 @@ func TestTx_Fund(t *testing.T) {
 			utxos: func() []*tbc.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
-				script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
 				return []*tbc.UTXO{{
 					txid, 0, script, 500, 0xffffff,
@@ -461,7 +461,7 @@ func TestTx_Fund_Deficit(t *testing.T) {
 			utxos: func() []*tbc.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
-				script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
 				return []*tbc.UTXO{{
 					txid, 0, script, 2000, 0xffffff,
@@ -484,7 +484,7 @@ func TestTx_Fund_Deficit(t *testing.T) {
 			utxos: func() []*tbc.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
-				script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
 				return []*tbc.UTXO{{
 					txid, 0, script, 2000, 0xffffff,
@@ -511,7 +511,7 @@ func TestTx_Fund_Deficit(t *testing.T) {
 			utxos: func() []*tbc.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
-				script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
 				return []*tbc.UTXO{{
 					txid, 0, script, 2000, 0xffffff,
@@ -554,7 +554,7 @@ func TestTx_Fund_Deficit(t *testing.T) {
 			utxos: func() []*tbc.UTXO {
 				txid, err := hex.DecodeString("07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b")
 				assert.NoError(t, err)
-				script, err := bscript.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
+				script, err := script.NewFromHexString("76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac")
 				assert.NoError(t, err)
 				return []*tbc.UTXO{{
 					txid, 0, script, 2000, 0xffffff,

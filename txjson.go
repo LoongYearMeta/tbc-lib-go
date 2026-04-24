@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 )
 
 type txJSON struct {
@@ -85,7 +85,7 @@ func (i *Input) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	s, err := bscript.NewFromHexString(ij.UnlockingScript)
+	s, err := script.NewFromHexString(ij.UnlockingScript)
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func (o *Output) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &oj); err != nil {
 		return err
 	}
-	s, err := bscript.NewFromHexString(oj.LockingScript)
+	s, err := script.NewFromHexString(oj.LockingScript)
 	if err != nil {
 		return err
 	}

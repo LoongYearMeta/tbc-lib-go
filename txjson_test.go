@@ -7,7 +7,7 @@ import (
 
 	"github.com/libsv/go-bk/wif"
 	tbc "github.com/LoongYearMeta/tbc-lib-go"
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/unlocker"
 	"github.com/stretchr/testify/assert"
 )
@@ -50,7 +50,7 @@ func TestTx_JSON(t *testing.T) {
 				w, err := wif.DecodeWIF("KznvCNc6Yf4iztSThoMH6oHWzH9EgjfodKxmeuUGPq5DEX5maspS")
 				assert.NoError(t, err)
 				assert.NotNil(t, w)
-				s := &bscript.Script{}
+				s := &script.Script{}
 				assert.NoError(t, s.AppendPushDataString("test"))
 				tx.AddOutput(&tbc.Output{
 					LockingScript: s,

@@ -10,7 +10,7 @@ import (
 
 	"github.com/libsv/go-bk/crypto"
 
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
@@ -514,10 +514,10 @@ func (tx *Tx) estimatedFinalTx() (*Tx, error) {
 			continue
 		}
 		if in.PreviousTxScript != nil && in.PreviousTxScript.IsP2PKH() {
-			in.UnlockingScript = bscript.NewFromBytes(dummyP2PKHUnlock)
+			in.UnlockingScript = script.NewFromBytes(dummyP2PKHUnlock)
 			continue
 		}
-		in.UnlockingScript = bscript.NewFromBytes(nil)
+		in.UnlockingScript = script.NewFromBytes(nil)
 	}
 	return tempTx, nil
 }

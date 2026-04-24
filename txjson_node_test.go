@@ -7,7 +7,7 @@ import (
 
 	"github.com/libsv/go-bk/wif"
 	tbc "github.com/LoongYearMeta/tbc-lib-go"
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/unlocker"
 	"github.com/stretchr/testify/assert"
 )
@@ -50,7 +50,7 @@ func TestTxJSON_Node_JSON(t *testing.T) {
 				w, err := wif.DecodeWIF("KznvCNc6Yf4iztSThoMH6oHWzH9EgjfodKxmeuUGPq5DEX5maspS")
 				assert.NoError(t, err)
 				assert.NotNil(t, w)
-				s := &bscript.Script{}
+				s := &script.Script{}
 				assert.NoError(t, s.AppendPushDataString("test"))
 				tx.AddOutput(&tbc.Output{
 					LockingScript: s,
@@ -637,8 +637,8 @@ func TestOutput_Node_JSON(t *testing.T) {
 		"node json": {
 			output: &tbc.Output{
 				Satoshis: 10000,
-				LockingScript: func() *bscript.Script {
-					s, err := bscript.NewFromASM("OP_4 OP_2 OP_2 OP_ADD OP_EQUAL")
+				LockingScript: func() *script.Script {
+					s, err := script.NewFromASM("OP_4 OP_2 OP_2 OP_ADD OP_EQUAL")
 					assert.NoError(t, err)
 
 					return s
@@ -674,8 +674,8 @@ func TestOutput_JSON(t *testing.T) {
 		"standard json": {
 			output: &tbc.Output{
 				Satoshis: 10000,
-				LockingScript: func() *bscript.Script {
-					s, err := bscript.NewFromASM("OP_4 OP_2 OP_2 OP_ADD OP_EQUAL")
+				LockingScript: func() *script.Script {
+					s, err := script.NewFromASM("OP_4 OP_2 OP_2 OP_ADD OP_EQUAL")
 					assert.NoError(t, err)
 
 					return s
@@ -715,8 +715,8 @@ func TestOutput_Node_UnmarshalJSON(t *testing.T) {
 }`,
 			expOutput: &tbc.Output{
 				Satoshis: 10000,
-				LockingScript: func() *bscript.Script {
-					s, err := bscript.NewFromASM("OP_4 OP_2 OP_2 OP_ADD OP_EQUAL")
+				LockingScript: func() *script.Script {
+					s, err := script.NewFromASM("OP_4 OP_2 OP_2 OP_ADD OP_EQUAL")
 					assert.NoError(t, err)
 
 					return s
@@ -747,8 +747,8 @@ func TestOutput_UnmarshalJSON(t *testing.T) {
 }`,
 			expOutput: &tbc.Output{
 				Satoshis: 10000,
-				LockingScript: func() *bscript.Script {
-					s, err := bscript.NewFromASM("OP_4 OP_2 OP_2 OP_ADD OP_EQUAL")
+				LockingScript: func() *script.Script {
+					s, err := script.NewFromASM("OP_4 OP_2 OP_2 OP_ADD OP_EQUAL")
 					assert.NoError(t, err)
 
 					return s

@@ -3,7 +3,7 @@ package tbc
 import (
 	"encoding/hex"
 
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 )
 
 // UTXO 表示未花费交易输出（Unspent Transaction Output），用于创建交易输入。
@@ -17,7 +17,7 @@ import (
 type UTXO struct {
 	TxID           []byte
 	Vout           uint32
-	LockingScript  *bscript.Script
+	LockingScript  *script.Script
 	Satoshis       uint64
 	SequenceNumber uint32
 }

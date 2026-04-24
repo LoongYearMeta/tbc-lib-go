@@ -20,7 +20,7 @@ import (
 	"github.com/libsv/go-bk/base58"
 	bkcrypto "github.com/libsv/go-bk/crypto"
 
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
@@ -290,14 +290,14 @@ func VerifyMessageWithAddress(message, address, sigBase64, network string) (bool
 	return true, nil
 }
 
-func addressFromRecoveredKey(pub *secp.PublicKey, compressed bool, mainnet bool) (*bscript.Address, error) {
+func addressFromRecoveredKey(pub *secp.PublicKey, compressed bool, mainnet bool) (*script.Address, error) {
 	var serialized []byte
 	if compressed {
 		serialized = pub.SerializeCompressed()
 	} else {
 		serialized = pub.SerializeUncompressed()
 	}
-	return bscript.NewAddressFromPublicKeyHash(bkcrypto.Hash160(serialized), mainnet)
+	return script.NewAddressFromPublicKeyHash(bkcrypto.Hash160(serialized), mainnet)
 }
 
 func publicKeysEqual(a, b *secp.PublicKey) bool {

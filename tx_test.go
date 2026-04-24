@@ -14,7 +14,7 @@ import (
 	"github.com/libsv/go-bk/wif"
 	. "github.com/libsv/go-bk/wif"
 	tbc "github.com/LoongYearMeta/tbc-lib-go"
-	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/testing/data"
 	"github.com/LoongYearMeta/tbc-lib-go/unlocker"
 	"github.com/stretchr/testify/assert"
@@ -75,7 +75,7 @@ func TestNewTxFromString(t *testing.T) {
 			SequenceNumber:     tbc.DefaultSequenceNumber,
 		}
 		assert.NoError(t, i.PreviousTxIDAdd(tx.InputIdx(0).PreviousTxID()))
-		i.UnlockingScript, err = bscript.NewFromHexString("47304402205cc711985ce2a6d61eece4f9b6edd6337bad3b7eca3aa3ce59bc15620d8de2a80220410c92c48a226ba7d5a9a01105524097f673f31320d46c3b61d2378e6f05320041")
+		i.UnlockingScript, err = script.NewFromHexString("47304402205cc711985ce2a6d61eece4f9b6edd6337bad3b7eca3aa3ce59bc15620d8de2a80220410c92c48a226ba7d5a9a01105524097f673f31320d46c3b61d2378e6f05320041")
 		assert.NoError(t, err)
 		assert.NotNil(t, i.UnlockingScript)
 
@@ -86,8 +86,8 @@ func TestNewTxFromString(t *testing.T) {
 		assert.Equal(t, 1, len(tx.Outputs))
 
 		// New output
-		var lscript *bscript.Script
-		lscript, err = bscript.NewFromHexString("76a91418392a59fc1f76ad6a3c7ffcea20cfcb17bda9eb88ac")
+		var lscript *script.Script
+		lscript, err = script.NewFromHexString("76a91418392a59fc1f76ad6a3c7ffcea20cfcb17bda9eb88ac")
 		assert.NoError(t, err)
 		assert.NotNil(t, lscript)
 
@@ -312,8 +312,8 @@ func TestTx_OutputIdx(t *testing.T) {
 			idx: 0,
 			expOutput: &tbc.Output{
 				Satoshis: 1000,
-				LockingScript: func() *bscript.Script {
-					s, err := bscript.NewP2PKHFromAddress("myUmQeCYxQECGHXbupe539n41u6BTBz1Eh")
+				LockingScript: func() *script.Script {
+					s, err := script.NewP2PKHFromAddress("myUmQeCYxQECGHXbupe539n41u6BTBz1Eh")
 					assert.NoError(t, err)
 					return s
 				}(),
@@ -329,8 +329,8 @@ func TestTx_OutputIdx(t *testing.T) {
 			idx: 2,
 			expOutput: &tbc.Output{
 				Satoshis: 1000,
-				LockingScript: func() *bscript.Script {
-					s, err := bscript.NewP2PKHFromAddress("mywmGVP89x3DsLNqk3NvctfQy9m9pvt7mz")
+				LockingScript: func() *script.Script {
+					s, err := script.NewP2PKHFromAddress("mywmGVP89x3DsLNqk3NvctfQy9m9pvt7mz")
 					assert.NoError(t, err)
 					return s
 				}(),
@@ -395,8 +395,8 @@ func TestTx_InputIdx(t *testing.T) {
 			expInput: func() *tbc.Input {
 				in := &tbc.Input{
 					PreviousTxSatoshis: 1000,
-					PreviousTxScript: func() *bscript.Script {
-						b, err := bscript.NewFromHexString("76a914eb0bd5edba389198e73f8efabddfc61666969ff788ac")
+					PreviousTxScript: func() *script.Script {
+						b, err := script.NewFromHexString("76a914eb0bd5edba389198e73f8efabddfc61666969ff788ac")
 						assert.NoError(t, err)
 						return b
 					}(),
@@ -433,8 +433,8 @@ func TestTx_InputIdx(t *testing.T) {
 			expInput: func() *tbc.Input {
 				in := &tbc.Input{
 					PreviousTxSatoshis: 999,
-					PreviousTxScript: func() *bscript.Script {
-						b, err := bscript.NewFromHexString("76a914eb0bd5edba389198e73f8efabddfc61666969ff788ac")
+					PreviousTxScript: func() *script.Script {
+						b, err := script.NewFromHexString("76a914eb0bd5edba389198e73f8efabddfc61666969ff788ac")
 						assert.NoError(t, err)
 						return b
 					}(),
@@ -519,7 +519,7 @@ func TestTx_Clone(t *testing.T) {
 
 	for i, ipt := range tx.Inputs {
 		ipt.PreviousTxSatoshis = rand.Uint64()
-		script, err := bscript.NewFromASM(fmt.Sprintf("OP_%d OP_IF OP_ENDIF", i+1))
+		script, err := script.NewFromASM(fmt.Sprintf("OP_%d OP_IF OP_ENDIF", i+1))
 		assert.NoError(t, err)
 
 		ipt.PreviousTxScript = script

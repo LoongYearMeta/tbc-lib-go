@@ -1,0 +1,383 @@
+// Package bscript is preserved as a forwarder for backwards compatibility.
+// New code should import "github.com/LoongYearMeta/tbc-lib-go/script" directly.
+package bscript
+
+import s "github.com/LoongYearMeta/tbc-lib-go/script"
+
+// Types (method sets flow through type aliases).
+type (
+	Address = s.Address
+	BIP276  = s.BIP276
+	Chunk   = s.Chunk
+	Script  = s.Script
+)
+
+// Constants: opcodes.
+const (
+	Op0                   = s.Op0
+	OpZERO                = s.OpZERO
+	OpFALSE               = s.OpFALSE
+	OpDATA1               = s.OpDATA1
+	OpDATA2               = s.OpDATA2
+	OpDATA3               = s.OpDATA3
+	OpDATA4               = s.OpDATA4
+	OpDATA5               = s.OpDATA5
+	OpDATA6               = s.OpDATA6
+	OpDATA7               = s.OpDATA7
+	OpDATA8               = s.OpDATA8
+	OpDATA9               = s.OpDATA9
+	OpDATA10              = s.OpDATA10
+	OpDATA11              = s.OpDATA11
+	OpDATA12              = s.OpDATA12
+	OpDATA13              = s.OpDATA13
+	OpDATA14              = s.OpDATA14
+	OpDATA15              = s.OpDATA15
+	OpDATA16              = s.OpDATA16
+	OpDATA17              = s.OpDATA17
+	OpDATA18              = s.OpDATA18
+	OpDATA19              = s.OpDATA19
+	OpDATA20              = s.OpDATA20
+	OpDATA21              = s.OpDATA21
+	OpDATA22              = s.OpDATA22
+	OpDATA23              = s.OpDATA23
+	OpDATA24              = s.OpDATA24
+	OpDATA25              = s.OpDATA25
+	OpDATA26              = s.OpDATA26
+	OpDATA27              = s.OpDATA27
+	OpDATA28              = s.OpDATA28
+	OpDATA29              = s.OpDATA29
+	OpDATA30              = s.OpDATA30
+	OpDATA31              = s.OpDATA31
+	OpDATA32              = s.OpDATA32
+	OpDATA33              = s.OpDATA33
+	OpDATA34              = s.OpDATA34
+	OpDATA35              = s.OpDATA35
+	OpDATA36              = s.OpDATA36
+	OpDATA37              = s.OpDATA37
+	OpDATA38              = s.OpDATA38
+	OpDATA39              = s.OpDATA39
+	OpDATA40              = s.OpDATA40
+	OpDATA41              = s.OpDATA41
+	OpDATA42              = s.OpDATA42
+	OpDATA43              = s.OpDATA43
+	OpDATA44              = s.OpDATA44
+	OpDATA45              = s.OpDATA45
+	OpDATA46              = s.OpDATA46
+	OpDATA47              = s.OpDATA47
+	OpDATA48              = s.OpDATA48
+	OpDATA49              = s.OpDATA49
+	OpDATA50              = s.OpDATA50
+	OpDATA51              = s.OpDATA51
+	OpDATA52              = s.OpDATA52
+	OpDATA53              = s.OpDATA53
+	OpDATA54              = s.OpDATA54
+	OpDATA55              = s.OpDATA55
+	OpDATA56              = s.OpDATA56
+	OpDATA57              = s.OpDATA57
+	OpDATA58              = s.OpDATA58
+	OpDATA59              = s.OpDATA59
+	OpDATA60              = s.OpDATA60
+	OpDATA61              = s.OpDATA61
+	OpDATA62              = s.OpDATA62
+	OpDATA63              = s.OpDATA63
+	OpDATA64              = s.OpDATA64
+	OpDATA65              = s.OpDATA65
+	OpDATA66              = s.OpDATA66
+	OpDATA67              = s.OpDATA67
+	OpDATA68              = s.OpDATA68
+	OpDATA69              = s.OpDATA69
+	OpDATA70              = s.OpDATA70
+	OpDATA71              = s.OpDATA71
+	OpDATA72              = s.OpDATA72
+	OpDATA73              = s.OpDATA73
+	OpDATA74              = s.OpDATA74
+	OpDATA75              = s.OpDATA75
+	OpPUSHDATA1           = s.OpPUSHDATA1
+	OpPUSHDATA2           = s.OpPUSHDATA2
+	OpPUSHDATA4           = s.OpPUSHDATA4
+	Op1NEGATE             = s.Op1NEGATE
+	OpRESERVED            = s.OpRESERVED
+	OpBASE                = s.OpBASE
+	Op1                   = s.Op1
+	OpONE                 = s.OpONE
+	OpTRUE                = s.OpTRUE
+	Op2                   = s.Op2
+	Op3                   = s.Op3
+	Op4                   = s.Op4
+	Op5                   = s.Op5
+	Op6                   = s.Op6
+	Op7                   = s.Op7
+	Op8                   = s.Op8
+	Op9                   = s.Op9
+	Op10                  = s.Op10
+	Op11                  = s.Op11
+	Op12                  = s.Op12
+	Op13                  = s.Op13
+	Op14                  = s.Op14
+	Op15                  = s.Op15
+	Op16                  = s.Op16
+	OpNOP                 = s.OpNOP
+	OpVER                 = s.OpVER
+	OpIF                  = s.OpIF
+	OpNOTIF               = s.OpNOTIF
+	OpVERIF               = s.OpVERIF
+	OpVERNOTIF            = s.OpVERNOTIF
+	OpELSE                = s.OpELSE
+	OpENDIF               = s.OpENDIF
+	OpVERIFY              = s.OpVERIFY
+	OpRETURN              = s.OpRETURN
+	OpTOALTSTACK          = s.OpTOALTSTACK
+	OpFROMALTSTACK        = s.OpFROMALTSTACK
+	Op2DROP               = s.Op2DROP
+	Op2DUP                = s.Op2DUP
+	Op3DUP                = s.Op3DUP
+	Op2OVER               = s.Op2OVER
+	Op2ROT                = s.Op2ROT
+	Op2SWAP               = s.Op2SWAP
+	OpIFDUP               = s.OpIFDUP
+	OpDEPTH               = s.OpDEPTH
+	OpDROP                = s.OpDROP
+	OpDUP                 = s.OpDUP
+	OpNIP                 = s.OpNIP
+	OpOVER                = s.OpOVER
+	OpPICK                = s.OpPICK
+	OpROLL                = s.OpROLL
+	OpROT                 = s.OpROT
+	OpSWAP                = s.OpSWAP
+	OpTUCK                = s.OpTUCK
+	OpCAT                 = s.OpCAT
+	OpSPLIT               = s.OpSPLIT
+	OpNUM2BIN             = s.OpNUM2BIN
+	OpBIN2NUM             = s.OpBIN2NUM
+	OpSIZE                = s.OpSIZE
+	OpINVERT              = s.OpINVERT
+	OpAND                 = s.OpAND
+	OpOR                  = s.OpOR
+	OpXOR                 = s.OpXOR
+	OpEQUAL               = s.OpEQUAL
+	OpEQUALVERIFY         = s.OpEQUALVERIFY
+	OpRESERVED1           = s.OpRESERVED1
+	OpRESERVED2           = s.OpRESERVED2
+	Op1ADD                = s.Op1ADD
+	Op1SUB                = s.Op1SUB
+	Op2MUL                = s.Op2MUL
+	Op2DIV                = s.Op2DIV
+	OpNEGATE              = s.OpNEGATE
+	OpABS                 = s.OpABS
+	OpNOT                 = s.OpNOT
+	Op0NOTEQUAL           = s.Op0NOTEQUAL
+	OpADD                 = s.OpADD
+	OpSUB                 = s.OpSUB
+	OpMUL                 = s.OpMUL
+	OpDIV                 = s.OpDIV
+	OpMOD                 = s.OpMOD
+	OpLSHIFT              = s.OpLSHIFT
+	OpRSHIFT              = s.OpRSHIFT
+	OpBOOLAND             = s.OpBOOLAND
+	OpBOOLOR              = s.OpBOOLOR
+	OpNUMEQUAL            = s.OpNUMEQUAL
+	OpNUMEQUALVERIFY      = s.OpNUMEQUALVERIFY
+	OpNUMNOTEQUAL         = s.OpNUMNOTEQUAL
+	OpLESSTHAN            = s.OpLESSTHAN
+	OpGREATERTHAN         = s.OpGREATERTHAN
+	OpLESSTHANOREQUAL     = s.OpLESSTHANOREQUAL
+	OpGREATERTHANOREQUAL  = s.OpGREATERTHANOREQUAL
+	OpMIN                 = s.OpMIN
+	OpMAX                 = s.OpMAX
+	OpWITHIN              = s.OpWITHIN
+	OpRIPEMD160           = s.OpRIPEMD160
+	OpSHA1                = s.OpSHA1
+	OpSHA256              = s.OpSHA256
+	OpHASH160             = s.OpHASH160
+	OpHASH256             = s.OpHASH256
+	OpCODESEPARATOR       = s.OpCODESEPARATOR
+	OpCHECKSIG            = s.OpCHECKSIG
+	OpCHECKSIGVERIFY      = s.OpCHECKSIGVERIFY
+	OpCHECKMULTISIG       = s.OpCHECKMULTISIG
+	OpCHECKMULTISIGVERIFY = s.OpCHECKMULTISIGVERIFY
+	OpNOP1                = s.OpNOP1
+	OpNOP2                = s.OpNOP2
+	OpCHECKLOCKTIMEVERIFY = s.OpCHECKLOCKTIMEVERIFY
+	OpNOP3                = s.OpNOP3
+	OpCHECKSEQUENCEVERIFY = s.OpCHECKSEQUENCEVERIFY
+	OpNOP4                = s.OpNOP4
+	OpNOP5                = s.OpNOP5
+	OpNOP6                = s.OpNOP6
+	OpNOP7                = s.OpNOP7
+	OpNOP8                = s.OpNOP8
+	OpNOP9                = s.OpNOP9
+	OpNOP10               = s.OpNOP10
+	OpPUSHMETA            = s.OpPUSHMETA
+	OpPARTIALHASH         = s.OpPARTIALHASH
+	OpUNKNOWN188          = s.OpUNKNOWN188
+	OpUNKNOWN189          = s.OpUNKNOWN189
+	OpUNKNOWN190          = s.OpUNKNOWN190
+	OpUNKNOWN191          = s.OpUNKNOWN191
+	OpUNKNOWN192          = s.OpUNKNOWN192
+	OpUNKNOWN193          = s.OpUNKNOWN193
+	OpUNKNOWN194          = s.OpUNKNOWN194
+	OpUNKNOWN195          = s.OpUNKNOWN195
+	OpUNKNOWN196          = s.OpUNKNOWN196
+	OpUNKNOWN197          = s.OpUNKNOWN197
+	OpUNKNOWN198          = s.OpUNKNOWN198
+	OpUNKNOWN199          = s.OpUNKNOWN199
+	OpUNKNOWN200          = s.OpUNKNOWN200
+	OpUNKNOWN201          = s.OpUNKNOWN201
+	OpUNKNOWN202          = s.OpUNKNOWN202
+	OpUNKNOWN203          = s.OpUNKNOWN203
+	OpUNKNOWN204          = s.OpUNKNOWN204
+	OpUNKNOWN205          = s.OpUNKNOWN205
+	OpUNKNOWN206          = s.OpUNKNOWN206
+	OpUNKNOWN207          = s.OpUNKNOWN207
+	OpUNKNOWN208          = s.OpUNKNOWN208
+	OpUNKNOWN209          = s.OpUNKNOWN209
+	OpUNKNOWN210          = s.OpUNKNOWN210
+	OpUNKNOWN211          = s.OpUNKNOWN211
+	OpUNKNOWN212          = s.OpUNKNOWN212
+	OpUNKNOWN213          = s.OpUNKNOWN213
+	OpUNKNOWN214          = s.OpUNKNOWN214
+	OpUNKNOWN215          = s.OpUNKNOWN215
+	OpUNKNOWN216          = s.OpUNKNOWN216
+	OpUNKNOWN217          = s.OpUNKNOWN217
+	OpUNKNOWN218          = s.OpUNKNOWN218
+	OpUNKNOWN219          = s.OpUNKNOWN219
+	OpUNKNOWN220          = s.OpUNKNOWN220
+	OpUNKNOWN221          = s.OpUNKNOWN221
+	OpUNKNOWN222          = s.OpUNKNOWN222
+	OpUNKNOWN223          = s.OpUNKNOWN223
+	OpUNKNOWN224          = s.OpUNKNOWN224
+	OpUNKNOWN225          = s.OpUNKNOWN225
+	OpUNKNOWN226          = s.OpUNKNOWN226
+	OpUNKNOWN227          = s.OpUNKNOWN227
+	OpUNKNOWN228          = s.OpUNKNOWN228
+	OpUNKNOWN229          = s.OpUNKNOWN229
+	OpUNKNOWN230          = s.OpUNKNOWN230
+	OpUNKNOWN231          = s.OpUNKNOWN231
+	OpUNKNOWN232          = s.OpUNKNOWN232
+	OpUNKNOWN233          = s.OpUNKNOWN233
+	OpUNKNOWN234          = s.OpUNKNOWN234
+	OpUNKNOWN235          = s.OpUNKNOWN235
+	OpUNKNOWN236          = s.OpUNKNOWN236
+	OpUNKNOWN237          = s.OpUNKNOWN237
+	OpUNKNOWN238          = s.OpUNKNOWN238
+	OpUNKNOWN239          = s.OpUNKNOWN239
+	OpUNKNOWN240          = s.OpUNKNOWN240
+	OpUNKNOWN241          = s.OpUNKNOWN241
+	OpUNKNOWN242          = s.OpUNKNOWN242
+	OpUNKNOWN243          = s.OpUNKNOWN243
+	OpUNKNOWN244          = s.OpUNKNOWN244
+	OpUNKNOWN245          = s.OpUNKNOWN245
+	OpUNKNOWN246          = s.OpUNKNOWN246
+	OpUNKNOWN247          = s.OpUNKNOWN247
+	OpUNKNOWN248          = s.OpUNKNOWN248
+	OpUNKNOWN249          = s.OpUNKNOWN249
+	OpSMALLINTEGER        = s.OpSMALLINTEGER
+	OpPUBKEYS             = s.OpPUBKEYS
+	OpUNKNOWN252          = s.OpUNKNOWN252
+	OpPUBKEYHASH          = s.OpPUBKEYHASH
+	OpPUBKEY              = s.OpPUBKEY
+	OpINVALIDOPCODE       = s.OpINVALIDOPCODE
+)
+
+// Constants: ScriptKey types (lowercase values).
+const (
+	ScriptTypePubKey      = s.ScriptTypePubKey
+	ScriptTypePubKeyHash  = s.ScriptTypePubKeyHash
+	ScriptTypeNonStandard = s.ScriptTypeNonStandard
+	ScriptTypeEmpty       = s.ScriptTypeEmpty
+	ScriptTypeSecureHash  = s.ScriptTypeSecureHash
+	ScriptTypeMultiSig    = s.ScriptTypeMultiSig
+	ScriptTypeNullData    = s.ScriptTypeNullData
+)
+
+// Constants: Script types for classification (human-readable).
+const (
+	ScriptTypeUnknown       = s.ScriptTypeUnknown
+	ScriptTypePubKeyOut     = s.ScriptTypePubKeyOut
+	ScriptTypePubKeyIn      = s.ScriptTypePubKeyIn
+	ScriptTypePubKeyHashOut = s.ScriptTypePubKeyHashOut
+	ScriptTypePubKeyHashIn  = s.ScriptTypePubKeyHashIn
+	ScriptTypeScriptHashOut = s.ScriptTypeScriptHashOut
+	ScriptTypeScriptHashIn  = s.ScriptTypeScriptHashIn
+	ScriptTypeMultisigOut   = s.ScriptTypeMultisigOut
+	ScriptTypeMultisigIn    = s.ScriptTypeMultisigIn
+	ScriptTypeDataOut       = s.ScriptTypeDataOut
+	ScriptTypeSafeDataOut   = s.ScriptTypeSafeDataOut
+)
+
+// Constants: miscellaneous (BIP276 etc.).
+const (
+	CurrentVersion  = s.CurrentVersion
+	NetworkMainnet  = s.NetworkMainnet
+	NetworkTestnet  = s.NetworkTestnet
+	PrefixScript    = s.PrefixScript
+	PrefixTemplate  = s.PrefixTemplate
+)
+
+// Sentinel errors.
+var (
+	ErrDataTooBig   = s.ErrDataTooBig
+	ErrDataTooSmall = s.ErrDataTooSmall
+	ErrPartTooBig   = s.ErrPartTooBig
+
+	ErrInvalidAddressLength = s.ErrInvalidAddressLength
+	ErrUnsupportedAddress   = s.ErrUnsupportedAddress
+
+	ErrEncodingBadChar         = s.ErrEncodingBadChar
+	ErrEncodingTooLong         = s.ErrEncodingTooLong
+	ErrEncodingInvalidVersion  = s.ErrEncodingInvalidVersion
+	ErrEncodingInvalidChecksum = s.ErrEncodingInvalidChecksum
+	ErrEncodingChecksumFailed  = s.ErrEncodingChecksumFailed
+	ErrTextNoBIP76             = s.ErrTextNoBIP76
+
+	ErrInvalidPKLen      = s.ErrInvalidPKLen
+	ErrInvalidOpCode     = s.ErrInvalidOpCode
+	ErrEmptyScript       = s.ErrEmptyScript
+	ErrNotP2PKH          = s.ErrNotP2PKH
+	ErrInvalidOpcodeType = s.ErrInvalidOpcodeType
+)
+
+// Top-level function re-exports.
+var (
+	Base58EncodeMissingChecksum = s.Base58EncodeMissingChecksum
+	DecodeParts                 = s.DecodeParts
+	DecodeStringParts           = s.DecodeStringParts
+	EncodeBIP276                = s.EncodeBIP276
+	EncodeParts                 = s.EncodeParts
+	MinPushSize                 = s.MinPushSize
+	PushDataPrefix              = s.PushDataPrefix
+	ValidateAddress             = s.ValidateAddress
+
+	NewAddressFromPublicKey       = s.NewAddressFromPublicKey
+	NewAddressFromPublicKeyHash   = s.NewAddressFromPublicKeyHash
+	NewAddressFromPublicKeyString = s.NewAddressFromPublicKeyString
+	NewAddressFromString          = s.NewAddressFromString
+
+	DecodeBIP276 = s.DecodeBIP276
+
+	BuildDataOut         = s.BuildDataOut
+	BuildMultisigIn      = s.BuildMultisigIn
+	BuildMultisigOut     = s.BuildMultisigOut
+	BuildP2SHMultisigIn  = s.BuildP2SHMultisigIn
+	BuildPublicKeyHashIn = s.BuildPublicKeyHashIn
+	BuildPublicKeyIn     = s.BuildPublicKeyIn
+	BuildPublicKeyOut    = s.BuildPublicKeyOut
+	BuildSafeDataOut     = s.BuildSafeDataOut
+	BuildScriptHashOut   = s.BuildScriptHashOut
+
+	FromBuffer                = s.FromBuffer
+	FromChunks                = s.FromChunks
+	FromString                = s.FromString
+	NewFromASM                = s.NewFromASM
+	NewFromBytes              = s.NewFromBytes
+	NewFromHexString          = s.NewFromHexString
+	NewP2PKHFromAddress       = s.NewP2PKHFromAddress
+	NewP2PKHFromBip32ExtKey   = s.NewP2PKHFromBip32ExtKey
+	NewP2PKHFromPubKeyBytes   = s.NewP2PKHFromPubKeyBytes
+	NewP2PKHFromPubKeyEC      = s.NewP2PKHFromPubKeyEC
+	NewP2PKHFromPubKeyHash    = s.NewP2PKHFromPubKeyHash
+	NewP2PKHFromPubKeyHashStr = s.NewP2PKHFromPubKeyHashStr
+	NewP2PKHFromPubKeyStr     = s.NewP2PKHFromPubKeyStr
+	NewP2PKHUnlockingScript   = s.NewP2PKHUnlockingScript
+	NewScript                 = s.NewScript
+)
