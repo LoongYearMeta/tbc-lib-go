@@ -8,7 +8,7 @@ import (
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/errs"
 	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/scriptflag"
-	"github.com/LoongYearMeta/tbc-lib-go/sighash"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 )
 
 // halfOrder is used to tame ECDSA malleability (see BIP0062).

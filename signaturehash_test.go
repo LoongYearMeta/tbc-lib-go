@@ -6,7 +6,7 @@ import (
 
 	tbc "github.com/LoongYearMeta/tbc-lib-go"
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
-	"github.com/LoongYearMeta/tbc-lib-go/sighash"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
-	"github.com/LoongYearMeta/tbc-lib-go/sighash"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 )
 
 // UnlockerParams params used for unlocking an input with a `tbc.Unlocker`.

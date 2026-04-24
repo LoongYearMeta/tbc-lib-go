@@ -6,7 +6,7 @@ import (
 
 	"github.com/libsv/go-bk/crypto"
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
-	"github.com/LoongYearMeta/tbc-lib-go/sighash"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 )
 
 // defaultHex is used to fix a bug in the original client (see if statement in the CalcInputSignatureHash func)

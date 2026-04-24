@@ -9,7 +9,7 @@ import (
 	"github.com/libsv/go-bk/crypto"
 	tbc "github.com/LoongYearMeta/tbc-lib-go"
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
-	"github.com/LoongYearMeta/tbc-lib-go/sighash"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 )
 
 // Getter implements the `tbc.UnlockerGetter` interface. It unlocks a Tx locally,

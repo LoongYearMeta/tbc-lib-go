@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
-	"github.com/LoongYearMeta/tbc-lib-go/sighash"
+	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 )
 
 // UTXOGetterFunc is used for tx.Fund(...). It provides the amount of satoshis required

@@ -1,4 +1,4 @@
-package tbc
+package networks
 
 // Network 抽象层（参考 tbc-lib-js 的 lib/networks.js）
 //
@@ -97,11 +97,8 @@ var (
 		CashAddrPref: "tbcstn",
 	}
 
-	// 默认网络
-	DefaultNetwork = Livenet
-
 	// 网络映射表
-	networkMap = make(map[string]*Network)
+	networkMap     = make(map[string]*Network)
 	networkByMagic = make(map[uint32]*Network)
 )
 
