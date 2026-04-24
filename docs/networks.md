@@ -4,6 +4,12 @@
 
 `tbc-lib-go` 使用包级常量 `tbc.Livenet`、`tbc.Testnet`、`tbc.Regtest`、`tbc.STN` 描述网络参数（地址版本字节、P2P 魔数、端口等），与 JS 侧 `Networks.livenet` / `Networks.testnet` 等常量对象一一对应。
 
+> 两种 import 风格任选：
+> - **推荐（门面）**：`import tbc "github.com/LoongYearMeta/tbc-lib-go"` 直接用 `tbc.X`，下游零改动。
+> - **进阶（子包）**：按需 import 对应子包（本主题对应 `.../networks`），享受更细粒度的依赖控制。
+>
+> 本文档示例以**门面风格**为主。
+
 ## 预定义网络
 
 ```go

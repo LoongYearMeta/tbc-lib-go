@@ -4,6 +4,12 @@
 
 `tbc.ECIES` 提供与 Electrum 兼容的 BIE1 消息格式，可与官方 `tbc-lib-js` 的 `ecies` 子模块互操作（选项语义与 JS 文档中的 `ephemeralKey` / `noKey` / `shortTag` 一致）。
 
+> 两种 import 风格任选：
+> - **推荐（门面）**：`import tbc "github.com/LoongYearMeta/tbc-lib-go"` 直接用 `tbc.X`，下游零改动。
+> - **进阶（子包）**：按需 import 对应子包（本主题对应 `.../ecies`），享受更细粒度的依赖控制。
+>
+> 本文档示例以**门面风格**为主。
+
 ## 实现概要
 
 - secp256k1 ECDH

@@ -4,6 +4,12 @@
 
 `tbc.UTXO` 表示未花费输出，用于 `FromUTXOs` / `FromChain`，对应 JS 中 `Transaction.UnspentOutput` 或 `from({ txId, outputIndex, script, satoshis })` 所携带的信息。
 
+> 两种 import 风格任选：
+> - **推荐（门面）**：`import tbc "github.com/LoongYearMeta/tbc-lib-go"` 直接用 `tbc.X`，下游零改动。
+> - **进阶（子包）**：按需 import 对应子包（本主题对应 `.../transaction`），享受更细粒度的依赖控制。
+>
+> 本文档示例以**门面风格**为主。
+
 ## 字段
 
 | 含义 | Go | JS 常见字段名 |
