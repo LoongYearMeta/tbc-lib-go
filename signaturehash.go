@@ -5,7 +5,9 @@ import (
 	"encoding/binary"
 
 	"github.com/libsv/go-bk/crypto"
+
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 )
 
@@ -106,13 +108,13 @@ func (tx *Tx) CalcInputPreimage(inputNumber uint32, sigHashFlag sighash.Flag) ([
 	buf = append(buf, hashSequence...)
 
 	//  outpoint (32-byte hash + 4-byte little endian)
-	buf = append(buf, ReverseBytes(in.PreviousTxID())...)
+	buf = append(buf, encoding.ReverseBytes(in.PreviousTxID())...)
 	oi := make([]byte, 4)
 	binary.LittleEndian.PutUint32(oi, in.PreviousTxOutIndex)
 	buf = append(buf, oi...)
 
 	// scriptCode of the input (serialised as scripts inside CTxOuts)
-	buf = append(buf, VarInt(uint64(in.PreviousTxScript.Len())).Bytes()...)
+	buf = append(buf, encoding.VarInt(uint64(in.PreviousTxScript.Len())).Bytes()...)
 	buf = append(buf, in.PreviousTxScript.Bytes()...)
 
 	// value of the output spent by this input (8-byte little endian)
@@ -226,15 +228,15 @@ func (tx *Tx) CalcInputPreimageLegacy(inputNumber uint32, shf sighash.Flag) ([]b
 	binary.LittleEndian.PutUint32(v, tx.Version)
 	buf = append(buf, v...)
 
-	buf = append(buf, VarInt(uint64(len(txCopy.Inputs))).Bytes()...)
+	buf = append(buf, encoding.VarInt(uint64(len(txCopy.Inputs))).Bytes()...)
 	for _, in := range txCopy.Inputs {
-		buf = append(buf, ReverseBytes(in.PreviousTxID())...)
+		buf = append(buf, encoding.ReverseBytes(in.PreviousTxID())...)
 
 		oi := make([]byte, 4)
 		binary.LittleEndian.PutUint32(oi, in.PreviousTxOutIndex)
 		buf = append(buf, oi...)
 
-		buf = append(buf, VarInt(uint64(in.PreviousTxScript.Len())).Bytes()...)
+		buf = append(buf, encoding.VarInt(uint64(in.PreviousTxScript.Len())).Bytes()...)
 		buf = append(buf, in.PreviousTxScript.Bytes()...)
 
 		sq := make([]byte, 4)
@@ -242,13 +244,13 @@ func (tx *Tx) CalcInputPreimageLegacy(inputNumber uint32, shf sighash.Flag) ([]b
 		buf = append(buf, sq...)
 	}
 
-	buf = append(buf, VarInt(uint64(len(txCopy.Outputs))).Bytes()...)
+	buf = append(buf, encoding.VarInt(uint64(len(txCopy.Outputs))).Bytes()...)
 	for _, out := range txCopy.Outputs {
 		st := make([]byte, 8)
 		binary.LittleEndian.PutUint64(st, out.Satoshis)
 		buf = append(buf, st...)
 
-		buf = append(buf, VarInt(uint64(out.LockingScript.Len())).Bytes()...)
+		buf = append(buf, encoding.VarInt(uint64(out.LockingScript.Len())).Bytes()...)
 		buf = append(buf, out.LockingScript.Bytes()...)
 	}
 

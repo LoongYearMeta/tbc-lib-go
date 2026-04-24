@@ -19,7 +19,9 @@ import (
 
 	"github.com/libsv/go-bk/base58"
 	bkcrypto "github.com/libsv/go-bk/crypto"
+
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 	secpECDSA "github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa"
@@ -118,8 +120,8 @@ func (m *Message) MagicHash() []byte {
 	if m == nil {
 		return nil
 	}
-	prefix1 := VarInt(uint64(len(messageMagicBytes))).Bytes()
-	prefix2 := VarInt(uint64(len(m.Data))).Bytes()
+	prefix1 := encoding.VarInt(uint64(len(messageMagicBytes))).Bytes()
+	prefix2 := encoding.VarInt(uint64(len(m.Data))).Bytes()
 
 	buf := make([]byte, 0, len(prefix1)+len(messageMagicBytes)+len(prefix2)+len(m.Data))
 	buf = append(buf, prefix1...)

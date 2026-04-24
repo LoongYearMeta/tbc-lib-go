@@ -7,7 +7,9 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
+
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
 /*
@@ -16,7 +18,7 @@ Field	                     Description                                          
 Previous Transaction hash  doubled SHA256-hashed of a (previous) to-be-used transaction	 32 bytes
 Previous Txout-index       non-negative integer indexing an output of the to-be-used      4 bytes
                            transaction
-Txin-script length         non-negative integer VI = VarInt                               1-9 bytes
+Txin-script length         non-negative integer VI = encoding.VarInt                               1-9 bytes
 Txin-script / scriptSig	   Script	                                                        <in-script length>-many bytes
 sequence_no	               normally 0xFFFFFFFF; irrelevant unless transaction's           4 bytes
                            lock_time is > 0
@@ -57,7 +59,7 @@ func (i *Input) ReadFrom(r io.Reader) (int64, error) {
 		return bytesRead, errors.Wrapf(err, "previousTxID(4): got %d bytes", n)
 	}
 
-	var l VarInt
+	var l encoding.VarInt
 	n64, err := l.ReadFrom(r)
 	bytesRead += n64
 	if err != nil {
@@ -78,7 +80,7 @@ func (i *Input) ReadFrom(r io.Reader) (int64, error) {
 		return bytesRead, errors.Wrapf(err, "sequence(4): got %d bytes", n)
 	}
 
-	i.previousTxID = ReverseBytes(previousTxID)
+	i.previousTxID = encoding.ReverseBytes(previousTxID)
 	i.PreviousTxOutIndex = binary.LittleEndian.Uint32(prevIndex)
 	i.UnlockingScript = bscript.NewFromBytes(script)
 	i.SequenceNumber = binary.LittleEndian.Uint32(sequence)
@@ -138,18 +140,18 @@ sequence:     %x
 func (i *Input) Bytes(clear bool) []byte {
 	h := make([]byte, 0)
 
-	h = append(h, ReverseBytes(i.previousTxID)...)
-	h = append(h, LittleEndianBytes(i.PreviousTxOutIndex, 4)...)
+	h = append(h, encoding.ReverseBytes(i.previousTxID)...)
+	h = append(h, encoding.LittleEndianBytes(i.PreviousTxOutIndex, 4)...)
 	if clear {
 		h = append(h, 0x00)
 	} else {
 		if i.UnlockingScript == nil {
-			h = append(h, VarInt(0).Bytes()...)
+			h = append(h, encoding.VarInt(0).Bytes()...)
 		} else {
-			h = append(h, VarInt(uint64(i.UnlockingScript.Len())).Bytes()...)
+			h = append(h, encoding.VarInt(uint64(i.UnlockingScript.Len())).Bytes()...)
 			h = append(h, i.UnlockingScript.Bytes()...)
 		}
 	}
 
-	return append(h, LittleEndianBytes(i.SequenceNumber, 4)...)
+	return append(h, encoding.LittleEndianBytes(i.SequenceNumber, 4)...)
 }

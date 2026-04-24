@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/libsv/go-bk/crypto"
+
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
 const (
@@ -180,7 +182,7 @@ func (h *BlockHeader) ID() string {
 	if hash == nil {
 		return ""
 	}
-	return hex.EncodeToString(ReverseBytes(hash))
+	return hex.EncodeToString(encoding.ReverseBytes(hash))
 }
 
 // TargetDifficulty decodes compact bits into full target.
@@ -245,7 +247,7 @@ func (h *BlockHeader) ValidProofOfWork() bool {
 		return false
 	}
 
-	pow := new(big.Int).SetBytes(ReverseBytes(h.HashBytes()))
+	pow := new(big.Int).SetBytes(encoding.ReverseBytes(h.HashBytes()))
 	return pow.Cmp(target) <= 0
 }
 

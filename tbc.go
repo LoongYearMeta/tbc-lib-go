@@ -8,6 +8,7 @@
 package tbc
 
 import (
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 	"github.com/LoongYearMeta/tbc-lib-go/networks"
 )
 
@@ -32,3 +33,13 @@ var (
 // and silently drift from networks/. Keeping it in the root package preserves
 // the original single-source-of-truth semantics.
 var DefaultNetwork = Livenet
+
+// ======== encoding ========
+
+type VarInt = encoding.VarInt
+
+var (
+	NewVarIntFromBytes = encoding.NewVarIntFromBytes
+	ReverseBytes       = encoding.ReverseBytes
+	LittleEndianBytes  = encoding.LittleEndianBytes
+)

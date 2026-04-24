@@ -11,6 +11,7 @@ import (
 	"github.com/libsv/go-bk/crypto"
 
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
 /*
@@ -20,12 +21,12 @@ Field            Description                                                    
 
 Version no	     currently 1	                                                           4 bytes
 
-In-counter  	 positive integer VI = VarInt                                              1 - 9 bytes
+In-counter  	 positive integer VI = encoding.VarInt                                              1 - 9 bytes
 
 list of Inputs	 the first input of the first transaction is also called "coinbase"        <in-counter>-many Inputs
                  (its content was ignored in earlier versions)
 
-Out-counter    	 positive integer VI = VarInt                                              1 - 9 bytes
+Out-counter    	 positive integer VI = encoding.VarInt                                              1 - 9 bytes
 
 list of Outputs  the Outputs of the first transaction spend the mined                      <out-counter>-many Outputs
 								 bitcoins for the block
@@ -97,7 +98,7 @@ func NewTxFromStream(b []byte) (*Tx, int, error) {
 	}
 	offset += 4
 
-	inputCount, size := NewVarIntFromBytes(b[offset:])
+	inputCount, size := encoding.NewVarIntFromBytes(b[offset:])
 	offset += size
 
 	// create Inputs
@@ -114,9 +115,9 @@ func NewTxFromStream(b []byte) (*Tx, int, error) {
 	}
 
 	// create Outputs
-	var outputCount VarInt
+	var outputCount encoding.VarInt
 	var output *Output
-	outputCount, size = NewVarIntFromBytes(b[offset:])
+	outputCount, size = encoding.NewVarIntFromBytes(b[offset:])
 	offset += size
 	for i = 0; i < uint64(outputCount); i++ {
 		output, size, err = newOutputFromBytes(b[offset:])
@@ -147,7 +148,7 @@ func (tx *Tx) ReadFrom(r io.Reader) (int64, error) {
 
 	tx.Version = binary.LittleEndian.Uint32(version)
 
-	var inputCount VarInt
+	var inputCount encoding.VarInt
 	n64, err := inputCount.ReadFrom(r)
 	bytesRead += n64
 	if err != nil {
@@ -165,7 +166,7 @@ func (tx *Tx) ReadFrom(r io.Reader) (int64, error) {
 		tx.Inputs = append(tx.Inputs, input)
 	}
 
-	var outputCount VarInt
+	var outputCount encoding.VarInt
 	n64, err = outputCount.ReadFrom(r)
 	bytesRead += n64
 	if err != nil {
@@ -199,7 +200,7 @@ func (tx *Tx) ReadFrom(r io.Reader) (int64, error) {
 func (tt *Txs) ReadFrom(r io.Reader) (int64, error) {
 	var bytesRead int64
 
-	var txCount VarInt
+	var txCount encoding.VarInt
 	n, err := txCount.ReadFrom(r)
 	bytesRead += n
 	if err != nil {
@@ -279,9 +280,9 @@ func (tx *Tx) IsCoinbase() bool {
 // (which is also the transaction hash).
 func (tx *Tx) TxIDBytes() []byte {
 	if tx.Version >= 10 {
-		return ReverseBytes(crypto.Sha256d(tx.newTxHeader()))
+		return encoding.ReverseBytes(crypto.Sha256d(tx.newTxHeader()))
 	}
-	return ReverseBytes(crypto.Sha256d(tx.Bytes()))
+	return encoding.ReverseBytes(crypto.Sha256d(tx.Bytes()))
 }
 
 // TxID returns the transaction ID of the transaction
@@ -295,7 +296,7 @@ func (tx *Tx) TxID() string {
 func (tx *Tx) newTxHeader() []byte {
 	h := make([]byte, 0, 4+4+4+4+32+32+32)
 
-	h = append(h, LittleEndianBytes(tx.Version, 4)...)
+	h = append(h, encoding.LittleEndianBytes(tx.Version, 4)...)
 
 	lt := make([]byte, 4)
 	binary.LittleEndian.PutUint32(lt, tx.LockTime)
@@ -312,9 +313,9 @@ func (tx *Tx) newTxHeader() []byte {
 	var inputBuf []byte
 	var inputScriptBuf []byte
 	for _, in := range tx.Inputs {
-		inputBuf = append(inputBuf, ReverseBytes(in.previousTxID)...)
-		inputBuf = append(inputBuf, LittleEndianBytes(in.PreviousTxOutIndex, 4)...)
-		inputBuf = append(inputBuf, LittleEndianBytes(in.SequenceNumber, 4)...)
+		inputBuf = append(inputBuf, encoding.ReverseBytes(in.previousTxID)...)
+		inputBuf = append(inputBuf, encoding.LittleEndianBytes(in.PreviousTxOutIndex, 4)...)
+		inputBuf = append(inputBuf, encoding.LittleEndianBytes(in.SequenceNumber, 4)...)
 
 		var scriptBytes []byte
 		if in.UnlockingScript != nil {
@@ -414,21 +415,21 @@ func (tt *Txs) NodeJSON() interface{} {
 func (tx *Tx) toBytesHelper(index int, lockingScript []byte) []byte {
 	h := make([]byte, 0)
 
-	h = append(h, LittleEndianBytes(tx.Version, 4)...)
+	h = append(h, encoding.LittleEndianBytes(tx.Version, 4)...)
 
-	h = append(h, VarInt(uint64(len(tx.Inputs))).Bytes()...)
+	h = append(h, encoding.VarInt(uint64(len(tx.Inputs))).Bytes()...)
 
 	for i, in := range tx.Inputs {
 		s := in.Bytes(lockingScript != nil)
 		if i == index && lockingScript != nil {
-			h = append(h, VarInt(uint64(len(lockingScript))).Bytes()...)
+			h = append(h, encoding.VarInt(uint64(len(lockingScript))).Bytes()...)
 			h = append(h, lockingScript...)
 		} else {
 			h = append(h, s...)
 		}
 	}
 
-	h = append(h, VarInt(uint64(len(tx.Outputs))).Bytes()...)
+	h = append(h, encoding.VarInt(uint64(len(tx.Outputs))).Bytes()...)
 	for _, out := range tx.Outputs {
 		h = append(h, out.Bytes()...)
 	}

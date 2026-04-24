@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 )
 
@@ -30,7 +31,7 @@ func newInputFromBytes(bytes []byte) (*Input, int, error) {
 	}
 
 	offset := 36
-	l, size := NewVarIntFromBytes(bytes[offset:])
+	l, size := encoding.NewVarIntFromBytes(bytes[offset:])
 	offset += size
 
 	totalLength := offset + int(l) + 4 // 4 bytes for nSeq
@@ -40,7 +41,7 @@ func newInputFromBytes(bytes []byte) (*Input, int, error) {
 	}
 
 	return &Input{
-		previousTxID:       ReverseBytes(bytes[0:32]),
+		previousTxID:       encoding.ReverseBytes(bytes[0:32]),
 		PreviousTxOutIndex: binary.LittleEndian.Uint32(bytes[32:36]),
 		SequenceNumber:     binary.LittleEndian.Uint32(bytes[offset+int(l):]),
 		UnlockingScript:    bscript.NewFromBytes(bytes[offset : offset+int(l)]),
@@ -197,7 +198,7 @@ func (tx *Tx) PreviousOutHash() []byte {
 	buf := make([]byte, 0)
 
 	for _, in := range tx.Inputs {
-		buf = append(buf, ReverseBytes(in.PreviousTxID())...)
+		buf = append(buf, encoding.ReverseBytes(in.PreviousTxID())...)
 		oi := make([]byte, 4)
 		binary.LittleEndian.PutUint32(oi, in.PreviousTxOutIndex)
 		buf = append(buf, oi...)

@@ -6,6 +6,8 @@ import (
 	"io"
 
 	"github.com/libsv/go-bk/crypto"
+
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
 // MerkleBlock wraps a partial merkle tree payload.
@@ -71,7 +73,7 @@ func (m *MerkleBlock) ReadFrom(r io.Reader) (int64, error) {
 	}
 	numTransactions := binaryLEToUint32(u32)
 
-	var hashCount VarInt
+	var hashCount encoding.VarInt
 	nVar, err := hashCount.ReadFrom(r)
 	total += nVar
 	if err != nil {
@@ -89,7 +91,7 @@ func (m *MerkleBlock) ReadFrom(r io.Reader) (int64, error) {
 		hashes = append(hashes, hex.EncodeToString(bb))
 	}
 
-	var flagCount VarInt
+	var flagCount encoding.VarInt
 	nFlags, err := flagCount.ReadFrom(r)
 	total += nFlags
 	if err != nil {
@@ -131,7 +133,7 @@ func (m *MerkleBlock) Bytes() []byte {
 	u32 := make([]byte, 4)
 	putBinaryLEUint32(u32, m.NumTransactions)
 	buf.Write(u32)
-	buf.Write(VarInt(uint64(len(m.Hashes))).Bytes())
+	buf.Write(encoding.VarInt(uint64(len(m.Hashes))).Bytes())
 	for _, h := range m.Hashes {
 		hashBytes, err := hex.DecodeString(h)
 		if err != nil {
@@ -139,7 +141,7 @@ func (m *MerkleBlock) Bytes() []byte {
 		}
 		buf.Write(fit32Bytes(hashBytes))
 	}
-	buf.Write(VarInt(uint64(len(m.Flags))).Bytes())
+	buf.Write(encoding.VarInt(uint64(len(m.Flags))).Bytes())
 	buf.Write(m.Flags)
 
 	return buf.Bytes()
@@ -220,7 +222,7 @@ func (m *MerkleBlock) HasTransaction(tx interface{}) bool {
 		if err != nil {
 			return false
 		}
-		hash = hex.EncodeToString(ReverseBytes(raw))
+		hash = hex.EncodeToString(encoding.ReverseBytes(raw))
 	default:
 		return false
 	}

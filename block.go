@@ -7,6 +7,8 @@ import (
 	"io"
 
 	"github.com/libsv/go-bk/crypto"
+
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
 const (
@@ -107,9 +109,9 @@ func (b *Block) ReadFromBytes(bb []byte) (int, error) {
 	}
 	offset := BlockHeaderSize
 
-	txCount, size := NewVarIntFromBytes(bb[offset:])
+	txCount, size := encoding.NewVarIntFromBytes(bb[offset:])
 	offset += size
-	if txCount > VarInt(MaxBlockSize) {
+	if txCount > encoding.VarInt(MaxBlockSize) {
 		return 0, ErrBlockTxCountTooLarge
 	}
 
@@ -148,7 +150,7 @@ func (b *Block) Bytes() []byte {
 
 	buf := bytes.NewBuffer(make([]byte, 0))
 	buf.Write(b.Header.Bytes())
-	buf.Write(VarInt(uint64(len(b.Transactions))).Bytes())
+	buf.Write(encoding.VarInt(uint64(len(b.Transactions))).Bytes())
 	for _, tx := range b.Transactions {
 		if tx == nil {
 			continue

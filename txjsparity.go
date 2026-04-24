@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
 // estimateSizeLikeJS 对齐 tbc-lib-js Transaction._estimateSize：
@@ -16,8 +17,8 @@ func estimateSizeLikeJS(tx *Tx, extraChangeScript *bscript.Script) int {
 		nOut++
 	}
 	sz := 8
-	sz += VarInt(uint64(len(tx.Inputs))).Length()
-	sz += VarInt(uint64(nOut)).Length()
+	sz += encoding.VarInt(uint64(len(tx.Inputs))).Length()
+	sz += encoding.VarInt(uint64(nOut)).Length()
 	for _, in := range tx.Inputs {
 		if in.PreviousTxScript != nil && in.PreviousTxScript.IsP2PKH() {
 			sz += 180
@@ -27,11 +28,11 @@ func estimateSizeLikeJS(tx *Tx, extraChangeScript *bscript.Script) int {
 	}
 	for _, out := range tx.Outputs {
 		l := out.LockingScript.Len()
-		sz += 8 + VarInt(uint64(l)).Length() + l
+		sz += 8 + encoding.VarInt(uint64(l)).Length() + l
 	}
 	if extraChangeScript != nil {
 		l := extraChangeScript.Len()
-		sz += 8 + VarInt(uint64(l)).Length() + l
+		sz += 8 + encoding.VarInt(uint64(l)).Length() + l
 	}
 	return sz
 }

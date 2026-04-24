@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"github.com/libsv/go-bk/crypto"
+
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 	"github.com/LoongYearMeta/tbc-lib-go/util/partialsha256"
 )
 
@@ -128,7 +130,7 @@ func GetPrePreTxdata(tx *Tx, vout int) (string, error) {
 
 	var inputBuf1, inputBuf2 []byte
 	for _, in := range tx.Inputs {
-		prevID := ReverseBytes(in.PreviousTxID())
+		prevID := encoding.ReverseBytes(in.PreviousTxID())
 		inputBuf1 = append(inputBuf1, prevID...)
 		oi := make([]byte, 4)
 		binary.LittleEndian.PutUint32(oi, in.PreviousTxOutIndex)
@@ -248,7 +250,7 @@ func GetPreTxdata(tx *Tx, vout int) (string, error) {
 
 	var inputBuf1, inputBuf2 []byte
 	for _, in := range tx.Inputs {
-		prevID := ReverseBytes(in.PreviousTxID())
+		prevID := encoding.ReverseBytes(in.PreviousTxID())
 		inputBuf1 = append(inputBuf1, prevID...)
 		oi := make([]byte, 4)
 		binary.LittleEndian.PutUint32(oi, in.PreviousTxOutIndex)
@@ -384,7 +386,7 @@ func GetCurrentTxdata(tx *Tx, inputIndex int) (string, error) {
 func GetCurrentInputsdata(tx *Tx) string {
 	var inputBuf []byte
 	for _, in := range tx.Inputs {
-		prevID := ReverseBytes(in.PreviousTxID())
+		prevID := encoding.ReverseBytes(in.PreviousTxID())
 		inputBuf = append(inputBuf, prevID...)
 		oi := make([]byte, 4)
 		binary.LittleEndian.PutUint32(oi, in.PreviousTxOutIndex)
@@ -413,7 +415,7 @@ func GetContractTxdata(tx *Tx, vout int) (string, error) {
 
 	var inputBuf1, inputBuf2 []byte
 	for _, in := range tx.Inputs {
-		prevID := ReverseBytes(in.PreviousTxID())
+		prevID := encoding.ReverseBytes(in.PreviousTxID())
 		inputBuf1 = append(inputBuf1, prevID...)
 		oi := make([]byte, 4)
 		binary.LittleEndian.PutUint32(oi, in.PreviousTxOutIndex)

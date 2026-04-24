@@ -7,7 +7,9 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
+
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
 /*
@@ -16,7 +18,7 @@ Field	                        Description	                                Size
 -----------------------------------------------------------------------------------------------------
 value                         non-negative integer giving the number of   8 bytes
                               Satoshis(BTC/10^8) to be transferred
-Txout-script length           non-negative integer                        1 - 9 bytes VI = VarInt
+Txout-script length           non-negative integer                        1 - 9 bytes VI = encoding.VarInt
 Txout-script / scriptPubKey   Script                                      <out-script length>-many bytes
 (lockingScript)
 
@@ -40,7 +42,7 @@ func (o *Output) ReadFrom(r io.Reader) (int64, error) {
 		return bytesRead, errors.Wrapf(err, "satoshis(8): got %d bytes", n)
 	}
 
-	var l VarInt
+	var l encoding.VarInt
 	n64, err := l.ReadFrom(r)
 	bytesRead += n64
 	if err != nil {
@@ -80,7 +82,7 @@ func (o *Output) Bytes() []byte {
 
 	h := make([]byte, 0)
 	h = append(h, b...)
-	h = append(h, VarInt(uint64(o.LockingScript.Len())).Bytes()...)
+	h = append(h, encoding.VarInt(uint64(o.LockingScript.Len())).Bytes()...)
 	h = append(h, o.LockingScript.Bytes()...)
 
 	return h
@@ -95,7 +97,7 @@ func (o *Output) BytesForSigHash() []byte {
 	binary.LittleEndian.PutUint64(satoshis, o.Satoshis)
 	buf = append(buf, satoshis...)
 
-	buf = append(buf, VarInt(uint64(o.LockingScript.Len())).Bytes()...)
+	buf = append(buf, encoding.VarInt(uint64(o.LockingScript.Len())).Bytes()...)
 	buf = append(buf, o.LockingScript.Bytes()...)
 
 	return buf

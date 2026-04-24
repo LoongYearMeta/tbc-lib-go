@@ -8,7 +8,9 @@ import (
 	"github.com/libsv/go-bk/bip32"
 	"github.com/libsv/go-bk/crypto"
 	"github.com/pkg/errors"
+
 	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )
 
 // newOutputFromBytes returns a transaction Output from the bytes provided
@@ -18,7 +20,7 @@ func newOutputFromBytes(bytes []byte) (*Output, int, error) {
 	}
 
 	offset := 8
-	l, size := NewVarIntFromBytes(bytes[offset:])
+	l, size := encoding.NewVarIntFromBytes(bytes[offset:])
 	offset += size
 
 	totalLength := offset + int(l)
