@@ -1,4 +1,4 @@
-package bt
+package tbc
 
 import (
 	"bytes"
@@ -10,17 +10,17 @@ import (
 	"github.com/libsv/go-bk/crypto"
 	"github.com/pkg/errors"
 
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/sighash"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/sighash"
 )
 
 // UTXOGetterFunc is used for tx.Fund(...). It provides the amount of satoshis required
-// for funding as `deficit`, and expects []*bt.UTXO to be returned containing
-// utxos of which *bt.Input's can be built.
-// If the returned []*bt.UTXO does not cover the deficit after fee recalculation, then
+// for funding as `deficit`, and expects []*tbc.UTXO to be returned containing
+// utxos of which *tbc.Input's can be built.
+// If the returned []*tbc.UTXO does not cover the deficit after fee recalculation, then
 // this UTXOGetterFunc is called again, with the newly calculated deficit passed in.
 //
-// It is expected that bt.ErrNoUTXO will be returned once the utxo source is depleted.
+// It is expected that tbc.ErrNoUTXO will be returned once the utxo source is depleted.
 type UTXOGetterFunc func(ctx context.Context, deficit uint64) ([]*UTXO, error)
 
 // newInputFromBytes returns a transaction input from the bytes provided.
@@ -106,7 +106,7 @@ func (tx *Tx) From(prevTxID string, vout uint32, prevTxLockingScript string, sat
 	})
 }
 
-// FromUTXOs adds a new input to the transaction from the specified *bt.UTXO fields, using the default
+// FromUTXOs adds a new input to the transaction from the specified *tbc.UTXO fields, using the default
 // finalised sequence number (0xFFFFFFFF). If you want a different nSeq, change it manually
 // afterwards.
 func (tx *Tx) FromUTXOs(utxos ...*UTXO) error {
@@ -127,21 +127,21 @@ func (tx *Tx) FromUTXOs(utxos ...*UTXO) error {
 	return nil
 }
 
-// Fund continuously calls the provided bt.UTXOGetterFunc, adding each returned input
+// Fund continuously calls the provided tbc.UTXOGetterFunc, adding each returned input
 // as an input via tx.From(...), until it is estimated that inputs cover the outputs + fees.
 //
 // After completion, the receiver is ready for `Change(...)` to be called, and then be signed.
-// Note, this function works under the assumption that receiver *bt.Tx already has all the outputs
+// Note, this function works under the assumption that receiver *tbc.Tx already has all the outputs
 // which need covered.
 //
-// If insufficient utxos are provided from the UTXOGetterFunc, a bt.ErrInsufficientFunds is returned.
+// If insufficient utxos are provided from the UTXOGetterFunc, a tbc.ErrInsufficientFunds is returned.
 //
 // Example usage:
-//    if err := tx.Fund(ctx, bt.NewFeeQuote(), func(ctx context.Context, deficit satoshis) ([]*bt.UTXO, error) {
-//        utxos := make([]*bt.UTXO, 0)
+//    if err := tx.Fund(ctx, tbc.NewFeeQuote(), func(ctx context.Context, deficit satoshis) ([]*tbc.UTXO, error) {
+//        utxos := make([]*tbc.UTXO, 0)
 //        for _, f := range funds {
 //            deficit -= satoshis
-//            utxos := append(utxos, &bt.UTXO{
+//            utxos := append(utxos, &tbc.UTXO{
 //                TxID: f.TxID,
 //                Vout: f.Vout,
 //                LockingScript: f.Script,
@@ -151,9 +151,9 @@ func (tx *Tx) FromUTXOs(utxos ...*UTXO) error {
 //                return utxos, nil
 //            }
 //        }
-//        return nil, bt.ErrNoUTXO
+//        return nil, tbc.ErrNoUTXO
 //    }); err != nil {
-//        if errors.Is(err, bt.ErrInsufficientFunds) { /* handle */ }
+//        if errors.Is(err, tbc.ErrInsufficientFunds) { /* handle */ }
 //        return err
 //    }
 func (tx *Tx) Fund(ctx context.Context, fq *FeeQuote, next UTXOGetterFunc) error {

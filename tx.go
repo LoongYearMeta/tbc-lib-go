@@ -1,4 +1,4 @@
-package bt
+package tbc
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/libsv/go-bk/crypto"
 
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 /*
@@ -45,7 +45,7 @@ type Tx struct {
 	LockTime uint32
 }
 
-// Txs a collection of *bt.Tx.
+// Txs a collection of *tbc.Tx.
 type Txs []*Tx
 
 // NewTx creates a new transaction object with default values.
@@ -133,7 +133,7 @@ func NewTxFromStream(b []byte) (*Tx, int, error) {
 	return &t, offset, nil
 }
 
-// ReadFrom reads from the `io.Reader` into the `bt.Tx`.
+// ReadFrom reads from the `io.Reader` into the `tbc.Tx`.
 func (tx *Tx) ReadFrom(r io.Reader) (int64, error) {
 	*tx = Tx{}
 	var bytesRead int64
@@ -194,7 +194,7 @@ func (tx *Tx) ReadFrom(r io.Reader) (int64, error) {
 	return bytesRead, nil
 }
 
-// ReadFrom txs from a block in a `bt.Txs`. This assumes a preceding varint detailing
+// ReadFrom txs from a block in a `tbc.Txs`. This assumes a preceding varint detailing
 // the total number of txs that the reader will provide.
 func (tt *Txs) ReadFrom(r io.Reader) (int64, error) {
 	var bytesRead int64
@@ -383,7 +383,7 @@ func (tx *Tx) Clone() *Tx {
 	return clone
 }
 
-// NodeJSON returns a wrapped *bt.Tx for marshalling/unmarshalling into a node tx format.
+// NodeJSON returns a wrapped *tbc.Tx for marshalling/unmarshalling into a node tx format.
 //
 // Marshalling usage example:
 //
@@ -391,13 +391,13 @@ func (tx *Tx) Clone() *Tx {
 //
 // Unmarshalling usage example:
 //
-//	tx := bt.NewTx()
+//	tx := tbc.NewTx()
 //	if err := json.Unmarshal(bb, tx.NodeJSON()); err != nil {}
 func (tx *Tx) NodeJSON() interface{} {
 	return &nodeTxWrapper{Tx: tx}
 }
 
-// NodeJSON returns a wrapped bt.Txs for marshalling/unmarshalling into a node tx format.
+// NodeJSON returns a wrapped tbc.Txs for marshalling/unmarshalling into a node tx format.
 //
 // Marshalling usage example:
 //
@@ -405,7 +405,7 @@ func (tx *Tx) NodeJSON() interface{} {
 //
 // Unmarshalling usage example:
 //
-//	var txs bt.Txs
+//	var txs tbc.Txs
 //	if err := json.Unmarshal(bb, txs.NodeJSON()); err != nil {}
 func (tt *Txs) NodeJSON() interface{} {
 	return (*nodeTxsWrapper)(tt)

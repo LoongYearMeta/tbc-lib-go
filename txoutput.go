@@ -1,4 +1,4 @@
-package bt
+package tbc
 
 import (
 	"encoding/binary"
@@ -8,7 +8,7 @@ import (
 	"github.com/libsv/go-bk/bip32"
 	"github.com/libsv/go-bk/crypto"
 	"github.com/pkg/errors"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 // newOutputFromBytes returns a transaction Output from the bytes provided

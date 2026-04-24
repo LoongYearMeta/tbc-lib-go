@@ -2,7 +2,7 @@
 
 **参考：** [tbc-lib-js/docs/unspentoutput.md](../../tbc-lib-js/docs/unspentoutput.md)
 
-`bt.UTXO` 表示未花费输出，用于 `FromUTXOs` / `FromChain`，对应 JS 中 `Transaction.UnspentOutput` 或 `from({ txId, outputIndex, script, satoshis })` 所携带的信息。
+`tbc.UTXO` 表示未花费输出，用于 `FromUTXOs` / `FromChain`，对应 JS 中 `Transaction.UnspentOutput` 或 `from({ txId, outputIndex, script, satoshis })` 所携带的信息。
 
 ## 字段
 
@@ -22,7 +22,7 @@
 import (
 	"encoding/json"
 
-	bt "github.com/sCrypt-Inc/go-bt/v2"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
 )
 
 nodeJSON := `[{
@@ -32,7 +32,7 @@ nodeJSON := `[{
 	"amount": 0.0007
 }]`
 
-var utxos bt.UTXOs
+var utxos tbc.UTXOs
 if err := json.Unmarshal([]byte(nodeJSON), utxos.NodeJSON()); err != nil {
 	panic(err)
 }
@@ -44,14 +44,14 @@ if err := json.Unmarshal([]byte(nodeJSON), utxos.NodeJSON()); err != nil {
 import (
 	"encoding/hex"
 
-	bt "github.com/sCrypt-Inc/go-bt/v2"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 txID, _ := hex.DecodeString("a0a08e397203df68392ee95b3f08b0b3b3e2401410a38d46ae0874f74846f2e9")
 lockingScript, _ := bscript.NewFromHexString("76a914089acaba6af8b2b4fb4bed3b747ab1e4e60b496588ac")
 
-utxo := &bt.UTXO{
+utxo := &tbc.UTXO{
 	TxID:          txID,
 	Vout:          0,
 	LockingScript: lockingScript,
@@ -71,7 +71,7 @@ bb, _ := json.Marshal(utxo.NodeJSON())
 
 | tbc-lib-js | tbc-lib-go |
 |------------|------------|
-| `UnspentOutput({...})` | `&bt.UTXO{...}` 或 JSON → `NodeJSON()` |
+| `UnspentOutput({...})` | `&tbc.UTXO{...}` 或 JSON → `NodeJSON()` |
 | `utxo.txId` | `utxo.TxID`（字节） / `TxIDStr()` |
 | `utxo.outputIndex` | `utxo.Vout` |
 | `utxo.script` / `scriptPubKey` | `utxo.LockingScript` |

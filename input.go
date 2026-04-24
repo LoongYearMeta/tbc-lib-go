@@ -1,4 +1,4 @@
-package bt
+package tbc
 
 import (
 	"encoding/binary"
@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 /*
@@ -38,7 +38,7 @@ type Input struct {
 	SequenceNumber     uint32
 }
 
-// ReadFrom reads from the `io.Reader` into the `bt.Input`.
+// ReadFrom reads from the `io.Reader` into the `tbc.Input`.
 func (i *Input) ReadFrom(r io.Reader) (int64, error) {
 	*i = Input{}
 	var bytesRead int64

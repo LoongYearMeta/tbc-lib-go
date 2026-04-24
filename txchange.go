@@ -1,7 +1,7 @@
-package bt
+package tbc
 
 import (
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 const (

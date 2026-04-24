@@ -1,4 +1,4 @@
-package bt
+package tbc
 
 import (
 	"encoding/binary"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/libsv/go-bk/crypto"
-	"github.com/sCrypt-Inc/go-bt/v2/util/partialsha256"
+	"github.com/LoongYearMeta/tbc-lib-go/util/partialsha256"
 )
 
 const (

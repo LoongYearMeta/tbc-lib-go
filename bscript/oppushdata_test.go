@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 	"github.com/stretchr/testify/assert"
 )
 

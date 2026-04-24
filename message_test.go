@@ -1,4 +1,4 @@
-package bt
+package tbc
 
 import (
 	"encoding/base64"
@@ -6,7 +6,7 @@ import (
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 	bkcrypto "github.com/libsv/go-bk/crypto"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 func TestMessage_SignAndVerify(t *testing.T) {

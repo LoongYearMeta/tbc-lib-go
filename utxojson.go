@@ -1,10 +1,10 @@
-package bt
+package tbc
 
 import (
 	"encoding/hex"
 	"encoding/json"
 
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 type nodeUTXOWrapper struct {
@@ -27,7 +27,7 @@ type utxoNodeJSON struct {
 	Amount       float64 `json:"amount"`
 }
 
-// UnmarshalJSON will convert a json serialised utxo to a bt.UTXO.
+// UnmarshalJSON will convert a json serialised utxo to a tbc.UTXO.
 func (u *UTXO) UnmarshalJSON(body []byte) error {
 	var j utxoJSON
 	if err := json.Unmarshal(body, &j); err != nil {

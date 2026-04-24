@@ -1406,14 +1406,13 @@ func BuildDataOut(data []byte, encoding string) (*Script, error) {
 
 // BuildSafeDataOut creates a safe OP_RETURN script (OP_FALSE OP_RETURN ...)
 func BuildSafeDataOut(data []byte, encoding string) (*Script, error) {
-	dataScript, err := BuildDataOut(data, encoding)
-	if err != nil {
+	script := NewFromBytes([]byte{})
+	if err := script.AppendOpcodes(OpFALSE, OpRETURN); err != nil {
 		return nil, err
 	}
-
-	script := NewFromBytes([]byte{})
-	_ = script.AppendOpcodes(OpFALSE)
-	_ = script.AppendPushData(dataScript.data)
+	if err := script.AppendPushData(data); err != nil {
+		return nil, err
+	}
 	return script, nil
 }
 

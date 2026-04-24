@@ -1,12 +1,12 @@
-package bt_test
+package tbc_test
 
 import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/sCrypt-Inc/go-bt/v2"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/sighash"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/sighash"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -56,7 +56,7 @@ func TestTx_CalcInputPreimage(t *testing.T) {
 
 	for _, test := range testVector {
 		t.Run(test.name, func(t *testing.T) {
-			tx, err := bt.NewTxFromString(test.unsignedTx)
+			tx, err := tbc.NewTxFromString(test.unsignedTx)
 			assert.NoError(t, err)
 			assert.NotNil(t, tx)
 
@@ -146,7 +146,7 @@ func TestTx_CalcInputSignatureHash(t *testing.T) {
 
 	for _, test := range testVector {
 		t.Run(test.name, func(t *testing.T) {
-			tx, err := bt.NewTxFromString(test.unsignedTx)
+			tx, err := tbc.NewTxFromString(test.unsignedTx)
 			assert.NoError(t, err)
 			assert.NotNil(t, tx)
 
@@ -209,7 +209,7 @@ func TestTx_CalcInputPreimageLegacy(t *testing.T) {
 
 	for _, test := range testVector {
 		t.Run(test.name, func(t *testing.T) {
-			tx, err := bt.NewTxFromString(test.unsignedTx)
+			tx, err := tbc.NewTxFromString(test.unsignedTx)
 			assert.NoError(t, err)
 			assert.NotNil(t, tx)
 

@@ -1,4 +1,4 @@
-module github.com/sCrypt-Inc/go-bt/v2
+module github.com/LoongYearMeta/tbc-lib-go
 
 go 1.17
 

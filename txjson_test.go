@@ -1,4 +1,4 @@
-package bt_test
+package tbc_test
 
 import (
 	"context"
@@ -6,20 +6,20 @@ import (
 	"testing"
 
 	"github.com/libsv/go-bk/wif"
-	"github.com/sCrypt-Inc/go-bt/v2"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/unlocker"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/unlocker"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTx_JSON(t *testing.T) {
 	tests := map[string]struct {
-		tx  *bt.Tx
+		tx  *tbc.Tx
 		err error
 	}{
 		"standard tx should marshal and unmarshall correctly": {
-			tx: func() *bt.Tx {
-				tx := bt.NewTx()
+			tx: func() *tbc.Tx {
+				tx := tbc.NewTx()
 				assert.NoError(t, tx.From(
 					"3c8edde27cb9a9132c22038dac4391496be9db16fd21351565cc1006966fdad5",
 					0,
@@ -37,8 +37,8 @@ func TestTx_JSON(t *testing.T) {
 				return tx
 			}(),
 		}, "data tx should marshall correctly": {
-			tx: func() *bt.Tx {
-				tx := bt.NewTx()
+			tx: func() *tbc.Tx {
+				tx := tbc.NewTx()
 				assert.NoError(t, tx.From(
 					"3c8edde27cb9a9132c22038dac4391496be9db16fd21351565cc1006966fdad5",
 					0,
@@ -52,7 +52,7 @@ func TestTx_JSON(t *testing.T) {
 				assert.NotNil(t, w)
 				s := &bscript.Script{}
 				assert.NoError(t, s.AppendPushDataString("test"))
-				tx.AddOutput(&bt.Output{
+				tx.AddOutput(&tbc.Output{
 					LockingScript: s,
 				})
 				err = tx.FillAllInputs(context.Background(), &unlocker.Getter{PrivateKey: w.PrivKey})
@@ -68,7 +68,7 @@ func TestTx_JSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			var tx *bt.Tx
+			var tx *tbc.Tx
 			assert.NoError(t, json.Unmarshal(bb, &tx))
 			assert.Equal(t, test.tx.String(), tx.String())
 		})
@@ -77,12 +77,12 @@ func TestTx_JSON(t *testing.T) {
 
 func TestTx_MarshallJSON(t *testing.T) {
 	tests := map[string]struct {
-		tx      *bt.Tx
+		tx      *tbc.Tx
 		expJSON string
 	}{
 		"transaction with 1 input 1 p2pksh output 1 data output should create valid json": {
-			tx: func() *bt.Tx {
-				tx, err := bt.NewTxFromString("0100000001abad53d72f342dd3f338e5e3346b492440f8ea821f8b8800e318f461cc5ea5a2010000006a4730440220042edc1302c5463e8397120a56b28ea381c8f7f6d9bdc1fee5ebca00c84a76e2022077069bbdb7ed701c4977b7db0aba80d41d4e693112256660bb5d674599e390cf41210294639d6e4249ea381c2e077e95c78fc97afe47a52eb24e1b1595cd3fdd0afdf8ffffffff02000000000000000008006a0548656c6c6f7f030000000000001976a914b85524abf8202a961b847a3bd0bc89d3d4d41cc588ac00000000")
+			tx: func() *tbc.Tx {
+				tx, err := tbc.NewTxFromString("0100000001abad53d72f342dd3f338e5e3346b492440f8ea821f8b8800e318f461cc5ea5a2010000006a4730440220042edc1302c5463e8397120a56b28ea381c8f7f6d9bdc1fee5ebca00c84a76e2022077069bbdb7ed701c4977b7db0aba80d41d4e693112256660bb5d674599e390cf41210294639d6e4249ea381c2e077e95c78fc97afe47a52eb24e1b1595cd3fdd0afdf8ffffffff02000000000000000008006a0548656c6c6f7f030000000000001976a914b85524abf8202a961b847a3bd0bc89d3d4d41cc588ac00000000")
 				assert.NoError(t, err)
 				return tx
 			}(),
@@ -111,8 +111,8 @@ func TestTx_MarshallJSON(t *testing.T) {
 	"lockTime": 0
 }`,
 		}, "transaction with multiple Inputs": {
-			tx: func() *bt.Tx {
-				tx := bt.NewTx()
+			tx: func() *tbc.Tx {
+				tx := tbc.NewTx()
 				assert.NoError(t, tx.From(
 					"3c8edde27cb9a9132c22038dac4391496be9db16fd21351565cc1006966fdad5",
 					0,
@@ -188,7 +188,7 @@ func TestTx_UnmarshalJSON(t *testing.T) {
 	t.Parallel()
 	tests := map[string]struct {
 		json  string
-		expTX *bt.Tx
+		expTX *tbc.Tx
 	}{
 		"our json with hex should map correctly": {
 			json: `{
@@ -214,8 +214,8 @@ func TestTx_UnmarshalJSON(t *testing.T) {
 					}
 				]
 			}`,
-			expTX: func() *bt.Tx {
-				tx, err := bt.NewTxFromString("0100000001abad53d72f342dd3f338e5e3346b492440f8ea821f8b8800e318f461cc5ea5a2010000006a4730440220042edc1302c5463e8397120a56b28ea381c8f7f6d9bdc1fee5ebca00c84a76e2022077069bbdb7ed701c4977b7db0aba80d41d4e693112256660bb5d674599e390cf41210294639d6e4249ea381c2e077e95c78fc97afe47a52eb24e1b1595cd3fdd0afdf8ffffffff02000000000000000008006a0548656c6c6f7f030000000000001976a914b85524abf8202a961b847a3bd0bc89d3d4d41cc588ac00000000")
+			expTX: func() *tbc.Tx {
+				tx, err := tbc.NewTxFromString("0100000001abad53d72f342dd3f338e5e3346b492440f8ea821f8b8800e318f461cc5ea5a2010000006a4730440220042edc1302c5463e8397120a56b28ea381c8f7f6d9bdc1fee5ebca00c84a76e2022077069bbdb7ed701c4977b7db0aba80d41d4e693112256660bb5d674599e390cf41210294639d6e4249ea381c2e077e95c78fc97afe47a52eb24e1b1595cd3fdd0afdf8ffffffff02000000000000000008006a0548656c6c6f7f030000000000001976a914b85524abf8202a961b847a3bd0bc89d3d4d41cc588ac00000000")
 				assert.NoError(t, err)
 				return tx
 			}(),
@@ -223,8 +223,8 @@ func TestTx_UnmarshalJSON(t *testing.T) {
 			json: `{
 				"hex": "0100000001abad53d72f342dd3f338e5e3346b492440f8ea821f8b8800e318f461cc5ea5a2010000006a4730440220042edc1302c5463e8397120a56b28ea381c8f7f6d9bdc1fee5ebca00c84a76e2022077069bbdb7ed701c4977b7db0aba80d41d4e693112256660bb5d674599e390cf41210294639d6e4249ea381c2e077e95c78fc97afe47a52eb24e1b1595cd3fdd0afdf8ffffffff02000000000000000008006a0548656c6c6f7f030000000000001976a914b85524abf8202a961b847a3bd0bc89d3d4d41cc588ac00000000"
 			}`,
-			expTX: func() *bt.Tx {
-				tx, err := bt.NewTxFromString("0100000001abad53d72f342dd3f338e5e3346b492440f8ea821f8b8800e318f461cc5ea5a2010000006a4730440220042edc1302c5463e8397120a56b28ea381c8f7f6d9bdc1fee5ebca00c84a76e2022077069bbdb7ed701c4977b7db0aba80d41d4e693112256660bb5d674599e390cf41210294639d6e4249ea381c2e077e95c78fc97afe47a52eb24e1b1595cd3fdd0afdf8ffffffff02000000000000000008006a0548656c6c6f7f030000000000001976a914b85524abf8202a961b847a3bd0bc89d3d4d41cc588ac00000000")
+			expTX: func() *tbc.Tx {
+				tx, err := tbc.NewTxFromString("0100000001abad53d72f342dd3f338e5e3346b492440f8ea821f8b8800e318f461cc5ea5a2010000006a4730440220042edc1302c5463e8397120a56b28ea381c8f7f6d9bdc1fee5ebca00c84a76e2022077069bbdb7ed701c4977b7db0aba80d41d4e693112256660bb5d674599e390cf41210294639d6e4249ea381c2e077e95c78fc97afe47a52eb24e1b1595cd3fdd0afdf8ffffffff02000000000000000008006a0548656c6c6f7f030000000000001976a914b85524abf8202a961b847a3bd0bc89d3d4d41cc588ac00000000")
 				assert.NoError(t, err)
 				return tx
 			}(),
@@ -232,7 +232,7 @@ func TestTx_UnmarshalJSON(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			var tx *bt.Tx
+			var tx *tbc.Tx
 			err := json.Unmarshal([]byte(test.json), &tx)
 			assert.NoError(t, err)
 			assert.Equal(t, test.expTX, tx)
@@ -241,7 +241,7 @@ func TestTx_UnmarshalJSON(t *testing.T) {
 }
 
 func TestTx_ToJson(t *testing.T) {
-	tx, _ := bt.NewTxFromString("0100000001abad53d72f342dd3f338e5e3346b492440f8ea821f8b8800e318f461cc5ea5a2010000006a4730440220042edc1302c5463e8397120a56b28ea381c8f7f6d9bdc1fee5ebca00c84a76e2022077069bbdb7ed701c4977b7db0aba80d41d4e693112256660bb5d674599e390cf41210294639d6e4249ea381c2e077e95c78fc97afe47a52eb24e1b1595cd3fdd0afdf8ffffffff02000000000000000008006a0548656c6c6f7f030000000000001976a914b85524abf8202a961b847a3bd0bc89d3d4d41cc588ac00000000")
+	tx, _ := tbc.NewTxFromString("0100000001abad53d72f342dd3f338e5e3346b492440f8ea821f8b8800e318f461cc5ea5a2010000006a4730440220042edc1302c5463e8397120a56b28ea381c8f7f6d9bdc1fee5ebca00c84a76e2022077069bbdb7ed701c4977b7db0aba80d41d4e693112256660bb5d674599e390cf41210294639d6e4249ea381c2e077e95c78fc97afe47a52eb24e1b1595cd3fdd0afdf8ffffffff02000000000000000008006a0548656c6c6f7f030000000000001976a914b85524abf8202a961b847a3bd0bc89d3d4d41cc588ac00000000")
 
 	_, err := json.MarshalIndent(tx, "", "\t")
 	assert.NoError(t, err)

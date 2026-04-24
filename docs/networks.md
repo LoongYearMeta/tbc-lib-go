@@ -2,17 +2,17 @@
 
 **参考：** [tbc-lib-js/docs/networks.md](../../tbc-lib-js/docs/networks.md)
 
-`tbc-lib-go` 使用包级常量 `bt.Livenet`、`bt.Testnet`、`bt.Regtest`、`bt.STN` 描述网络参数（地址版本字节、P2P 魔数、端口等），与 JS 侧 `Networks.livenet` / `Networks.testnet` 等常量对象一一对应。
+`tbc-lib-go` 使用包级常量 `tbc.Livenet`、`tbc.Testnet`、`tbc.Regtest`、`tbc.STN` 描述网络参数（地址版本字节、P2P 魔数、端口等），与 JS 侧 `Networks.livenet` / `Networks.testnet` 等常量对象一一对应。
 
 ## 预定义网络
 
 ```go
-import bt "github.com/sCrypt-Inc/go-bt/v2"
+import tbc "github.com/LoongYearMeta/tbc-lib-go"
 
-_ = bt.Livenet
-_ = bt.Testnet
-_ = bt.Regtest
-_ = bt.STN
+_ = tbc.Livenet
+_ = tbc.Testnet
+_ = tbc.Regtest
+_ = tbc.STN
 ```
 
 ## 主要字段
@@ -32,28 +32,28 @@ _ = bt.STN
 ## 常量速览
 
 ```go
-bt.Livenet.PubKeyHash  // 主网 P2PKH 前缀，如 0x00
-bt.Livenet.Port        // 8333
-bt.Testnet.PubKeyHash  // 测试网，如 0x6f
-bt.Testnet.Port        // 18333
+tbc.Livenet.PubKeyHash  // 主网 P2PKH 前缀，如 0x00
+tbc.Livenet.Port        // 8333
+tbc.Testnet.PubKeyHash  // 测试网，如 0x6f
+tbc.Testnet.Port        // 18333
 ```
 
 ## 默认网络
 
 ```go
-_ = bt.DefaultNetwork // 默认 livenet
-bt.DefaultNetwork = bt.Testnet
+_ = tbc.DefaultNetwork // 默认 livenet
+tbc.DefaultNetwork = tbc.Testnet
 ```
 
 ## Regtest
 
-JS 文档中的 `Networks.enableRegtest()` 会切换 testnet 的魔数与端口；Go 侧直接使用 **`bt.Regtest`** 常量即可用于本地回归环境（端口、魔数与 testnet 主配置不同，见 `network.go`）。
+JS 文档中的 `Networks.enableRegtest()` 会切换 testnet 的魔数与端口；Go 侧直接使用 **`tbc.Regtest`** 常量即可用于本地回归环境（端口、魔数与 testnet 主配置不同，见 `network.go`）。
 
 ## 与 tbc-lib-js 的对应关系
 
 | tbc-lib-js | tbc-lib-go |
 |------------|------------|
-| `Networks.livenet` | `bt.Livenet` |
-| `Networks.testnet` | `bt.Testnet` |
-| `Networks.defaultNetwork` | `bt.DefaultNetwork` |
-| `Networks.enableRegtest()` | 使用 `bt.Regtest` |
+| `Networks.livenet` | `tbc.Livenet` |
+| `Networks.testnet` | `tbc.Testnet` |
+| `Networks.defaultNetwork` | `tbc.DefaultNetwork` |
+| `Networks.enableRegtest()` | 使用 `tbc.Regtest` |

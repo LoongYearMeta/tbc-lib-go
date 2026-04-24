@@ -1,16 +1,16 @@
 package interpreter
 
 import (
-	"github.com/sCrypt-Inc/go-bt/v2"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter/scriptflag"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/scriptflag"
 )
 
 // ExecutionOptionFunc for setting execution options.
 type ExecutionOptionFunc func(p *execOpts)
 
 // WithTx configure the execution to run again a tx.
-func WithTx(tx *bt.Tx, inputIdx int, prevOutput *bt.Output) ExecutionOptionFunc {
+func WithTx(tx *tbc.Tx, inputIdx int, prevOutput *tbc.Output) ExecutionOptionFunc {
 	return func(p *execOpts) {
 		p.tx = tx
 		p.previousTxOut = prevOutput

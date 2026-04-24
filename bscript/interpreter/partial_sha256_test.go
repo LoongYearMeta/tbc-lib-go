@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/sCrypt-Inc/go-bt/v2/util/partialsha256"
+	"github.com/LoongYearMeta/tbc-lib-go/util/partialsha256"
 )
 
 func TestPartialSHA256_MatchesStdlibSHA256_NoPrefix(t *testing.T) {

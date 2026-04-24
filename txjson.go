@@ -1,11 +1,11 @@
-package bt
+package tbc
 
 import (
 	"encoding/hex"
 	"encoding/json"
 
 	"github.com/pkg/errors"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 type txJSON struct {
@@ -104,7 +104,7 @@ func (o *Output) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// UnmarshalJSON will convert a json serialised output to a bt Output.
+// UnmarshalJSON will convert a json serialised output to a tbc Output.
 func (o *Output) UnmarshalJSON(b []byte) error {
 	var oj outputJSON
 	if err := json.Unmarshal(b, &oj); err != nil {

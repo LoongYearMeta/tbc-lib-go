@@ -1,7 +1,7 @@
 /*
 Package bscript 提供 TBC 脚本的构建、解析与验证功能。
 
-对应 tbc-lib-js 的 Script 与 Interpreter 模块，详见 bt 包 docs/script.md。
+对应 tbc-lib-js 的 Script 与 Interpreter 模块，详见 tbc 包 docs/script.md。
 
 主要类型：
 

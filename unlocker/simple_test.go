@@ -6,10 +6,10 @@ import (
 
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bk/wif"
-	"github.com/sCrypt-Inc/go-bt/v2"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/sighash"
-	"github.com/sCrypt-Inc/go-bt/v2/unlocker"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/sighash"
+	"github.com/LoongYearMeta/tbc-lib-go/unlocker"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +17,7 @@ func TestLocalUnlocker_UnlockAllInputs(t *testing.T) {
 	t.Parallel()
 
 	incompleteTx := "010000000193a35408b6068499e0d5abd799d3e827d9bfe70c9b75ebe209c91d25072326510000000000ffffffff02404b4c00000000001976a91404ff367be719efa79d76e4416ffb072cd53b208888acde94a905000000001976a91404d03f746652cfcb6cb55119ab473a045137d26588ac00000000"
-	tx, err := bt.NewTxFromString(incompleteTx)
+	tx, err := tbc.NewTxFromString(incompleteTx)
 	assert.NoError(t, err)
 	assert.NotNil(t, tx)
 
@@ -42,12 +42,12 @@ func TestLocalUnlocker_UnlockAllInputs(t *testing.T) {
 
 func TestLocalUnlocker_ValidSignature(t *testing.T) {
 	tests := map[string]struct {
-		tx *bt.Tx
+		tx *tbc.Tx
 	}{
 		"valid signature 1": {
-			tx: func() *bt.Tx {
-				tx := bt.NewTx()
-				assert.NoError(t, tx.From("45be95d2f2c64e99518ffbbce03fb15a7758f20ee5eecf0df07938d977add71d", 0, "76a914c7c6987b6e2345a6b138e3384141520a0fbc18c588ac", 15564838601))
+			tx: func() *tbc.Tx {
+				tx := tbc.NewTx()
+				assert.NoError(t, tx.From("45be95d2f2c64e99518ffbbce03fb15a7758f20ee5eecf0df07938d977add71d", 0, "76a9142158ccfe3dc673b74e67c1ffd77842fd8bc4361c88ac", 15564838601))
 
 				script1, err := bscript.NewFromHexString("76a91442f9682260509ac80722b1963aec8a896593d16688ac")
 				assert.NoError(t, err)
@@ -63,12 +63,12 @@ func TestLocalUnlocker_ValidSignature(t *testing.T) {
 			}(),
 		},
 		"valid signature 2": {
-			tx: func() *bt.Tx {
-				tx := bt.NewTx()
+			tx: func() *tbc.Tx {
+				tx := tbc.NewTx()
 
 				assert.NoError(
 					t,
-					tx.From("64faeaa2e3cbadaf82d8fa8c7ded508cb043c5d101671f43c084be2ac6163148", 1, "76a914343cadc47d08a14ef773d70b3b2a90870b67b3ad88ac", 5000000000),
+					tx.From("64faeaa2e3cbadaf82d8fa8c7ded508cb043c5d101671f43c084be2ac6163148", 1, "76a9142158ccfe3dc673b74e67c1ffd77842fd8bc4361c88ac", 5000000000),
 				)
 				tx.Inputs[0].SequenceNumber = 0xfffffffe
 
@@ -91,11 +91,11 @@ func TestLocalUnlocker_ValidSignature(t *testing.T) {
 			tx := test.tx
 
 			var w *wif.WIF
-			w, err := wif.DecodeWIF("cNGwGSc7KRrTmdLUZ54fiSXWbhLNDc2Eg5zNucgQxyQCzuQ5YRDq")
+			w, err := wif.DecodeWIF("L1u2TmR7hMMMSV9Bx2Lyt3sujbboqEFqnKygnPRnQERhKB4qptuK")
 			assert.NoError(t, err)
 
 			unlocker := &unlocker.Simple{PrivateKey: w.PrivKey}
-			uscript, err := unlocker.UnlockingScript(context.Background(), tx, bt.UnlockerParams{})
+			uscript, err := unlocker.UnlockingScript(context.Background(), tx, tbc.UnlockerParams{})
 			assert.NoError(t, err)
 
 			assert.NoError(t, tx.InsertInputUnlockingScript(0, uscript))
@@ -122,10 +122,10 @@ func TestLocalUnlocker_ValidSignature(t *testing.T) {
 
 type mockUnlockerGetter struct {
 	t            *testing.T
-	unlockerFunc func(ctx context.Context, lockingScript *bscript.Script) (bt.Unlocker, error)
+	unlockerFunc func(ctx context.Context, lockingScript *bscript.Script) (tbc.Unlocker, error)
 }
 
-func (m *mockUnlockerGetter) Unlocker(ctx context.Context, lockingScript *bscript.Script) (bt.Unlocker, error) {
+func (m *mockUnlockerGetter) Unlocker(ctx context.Context, lockingScript *bscript.Script) (tbc.Unlocker, error) {
 	assert.NotNil(m.t, m.unlockerFunc, "unlockerFunc not set in this test")
 	return m.unlockerFunc(ctx, lockingScript)
 }
@@ -135,7 +135,7 @@ type mockUnlocker struct {
 	script string
 }
 
-func (m *mockUnlocker) UnlockingScript(ctx context.Context, tx *bt.Tx, params bt.UnlockerParams) (*bscript.Script, error) {
+func (m *mockUnlocker) UnlockingScript(ctx context.Context, tx *tbc.Tx, params tbc.UnlockerParams) (*bscript.Script, error) {
 	uscript, err := bscript.NewFromASM(m.script)
 	assert.NoError(m.t, err)
 
@@ -145,17 +145,17 @@ func (m *mockUnlocker) UnlockingScript(ctx context.Context, tx *bt.Tx, params bt
 func TestLocalUnlocker_NonSignature(t *testing.T) {
 	t.Parallel()
 	tests := map[string]struct {
-		tx                  *bt.Tx
-		unlockerFunc        func(ctx context.Context, lockingScript *bscript.Script) (bt.Unlocker, error)
+		tx                  *tbc.Tx
+		unlockerFunc        func(ctx context.Context, lockingScript *bscript.Script) (tbc.Unlocker, error)
 		expUnlockingScripts []string
 	}{
 		"simple script": {
-			tx: func() *bt.Tx {
-				tx := bt.NewTx()
+			tx: func() *tbc.Tx {
+				tx := tbc.NewTx()
 				assert.NoError(t, tx.From("45be95d2f2c64e99518ffbbce03fb15a7758f20ee5eecf0df07938d977add71d", 0, "52529387", 15564838601))
 				return tx
 			}(),
-			unlockerFunc: func(ctx context.Context, lockingScript *bscript.Script) (bt.Unlocker, error) {
+			unlockerFunc: func(ctx context.Context, lockingScript *bscript.Script) (tbc.Unlocker, error) {
 				asm, err := lockingScript.ToASM()
 				assert.NoError(t, err)
 
@@ -171,14 +171,14 @@ func TestLocalUnlocker_NonSignature(t *testing.T) {
 			expUnlockingScripts: []string{"OP_4"},
 		},
 		"multiple inputs unlocked": {
-			tx: func() *bt.Tx {
-				tx := bt.NewTx()
+			tx: func() *tbc.Tx {
+				tx := tbc.NewTx()
 				assert.NoError(t, tx.From("45be95d2f2c64e99518ffbbce03fb15a7758f20ee5eecf0df07938d977add71d", 0, "52529487", 15564838601))
 				assert.NoError(t, tx.From("45be95d2f2c64e99518ffbbce03fb15a7758f20ee5eecf0df07938d977add71d", 0, "52589587", 15564838601))
 				assert.NoError(t, tx.From("45be95d2f2c64e99518ffbbce03fb15a7758f20ee5eecf0df07938d977add71d", 0, "5a559687", 15564838601))
 				return tx
 			}(),
-			unlockerFunc: func(ctx context.Context, lockingScript *bscript.Script) (bt.Unlocker, error) {
+			unlockerFunc: func(ctx context.Context, lockingScript *bscript.Script) (tbc.Unlocker, error) {
 				asm, err := lockingScript.ToASM()
 				assert.NoError(t, err)
 

@@ -12,7 +12,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter/errs"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/errs"
 )
 
 // tstCheckScriptError ensures the type of the two passed errors are of the

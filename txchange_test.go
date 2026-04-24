@@ -1,18 +1,18 @@
-package bt_test
+package tbc_test
 
 import (
 	"context"
 	"testing"
 
 	. "github.com/libsv/go-bk/wif"
-	"github.com/sCrypt-Inc/go-bt/v2"
-	"github.com/sCrypt-Inc/go-bt/v2/unlocker"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/unlocker"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTx_ChangeToAddress(t *testing.T) {
 	t.Run("missing address and nil fees", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 		err := tx.From(
 			"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
@@ -26,7 +26,7 @@ func TestTx_ChangeToAddress(t *testing.T) {
 	})
 
 	t.Run("nil fees, valid address", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 		err := tx.From(
 			"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
@@ -40,7 +40,7 @@ func TestTx_ChangeToAddress(t *testing.T) {
 	})
 
 	t.Run("valid fees, valid address", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 		err := tx.From(
 			"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
@@ -49,7 +49,7 @@ func TestTx_ChangeToAddress(t *testing.T) {
 			4000000)
 		assert.NoError(t, err)
 
-		err = tx.ChangeToAddress("1GHMW7ABrFma2NSwiVe9b9bZxkMB7tuPZi", bt.NewFeeQuote())
+		err = tx.ChangeToAddress("1GHMW7ABrFma2NSwiVe9b9bZxkMB7tuPZi", tbc.NewFeeQuote())
 		assert.NoError(t, err)
 
 		assert.Equal(t, 1, tx.OutputCount())
@@ -61,11 +61,11 @@ func TestTx_Change(t *testing.T) {
 	t.Parallel()
 
 	t.Run("valid change tx (basic)", func(t *testing.T) {
-		expectedTx, err := bt.NewTxFromString("01000000010b94a1ef0fb352aa2adc54207ce47ba55d5a1c1609afda58fe9520e472299107000000006a47304402203753f8a7209ae13ac394b3b888703728a8e27b3e75dd02e1c0a1e82c3174e2d8022061dd4576f66415404cd218ddb4cd6dd3758d2bd9657284ee153aa7cc5ce5f50f412102c8803fdd437d902f08e3c2344cb33065c99d7c99982018ff9f7219c3dd352ff0ffffffff0190083d00000000001976a914af2590a45ae401651fdbdf59a76ad43d1862534088ac00000000")
+		expectedTx, err := tbc.NewTxFromString("01000000010b94a1ef0fb352aa2adc54207ce47ba55d5a1c1609afda58fe9520e472299107000000006a47304402203753f8a7209ae13ac394b3b888703728a8e27b3e75dd02e1c0a1e82c3174e2d8022061dd4576f66415404cd218ddb4cd6dd3758d2bd9657284ee153aa7cc5ce5f50f412102c8803fdd437d902f08e3c2344cb33065c99d7c99982018ff9f7219c3dd352ff0ffffffff0190083d00000000001976a914af2590a45ae401651fdbdf59a76ad43d1862534088ac00000000")
 		assert.NoError(t, err)
 		assert.NotNil(t, expectedTx)
 
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 
 		err = tx.From(
@@ -75,7 +75,7 @@ func TestTx_Change(t *testing.T) {
 			4000000)
 		assert.NoError(t, err)
 
-		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", bt.NewFeeQuote())
+		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", tbc.NewFeeQuote())
 		assert.NoError(t, err)
 
 		var wif *WIF
@@ -91,7 +91,7 @@ func TestTx_Change(t *testing.T) {
 
 	t.Run("change output is added correctly - fee removed", func(t *testing.T) {
 
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 
 		err := tx.From(
@@ -101,7 +101,7 @@ func TestTx_Change(t *testing.T) {
 			4000000)
 		assert.NoError(t, err)
 
-		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", bt.NewFeeQuote())
+		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", tbc.NewFeeQuote())
 		assert.NoError(t, err)
 
 		var wif *WIF
@@ -124,7 +124,7 @@ func TestTx_Change(t *testing.T) {
 
 	t.Run("determine fees are correct, correct change given", func(t *testing.T) {
 
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 
 		// utxo
@@ -143,7 +143,7 @@ func TestTx_Change(t *testing.T) {
 		err = tx.AddOpReturnPartsOutput([][]byte{[]byte("hi"), []byte("how"), []byte("are"), []byte("you")})
 		assert.NoError(t, err)
 
-		err = tx.ChangeToAddress("1D7gaZJo3vPn2Ks3PH694W9P8UVYLNh2jY", bt.NewFeeQuote())
+		err = tx.ChangeToAddress("1D7gaZJo3vPn2Ks3PH694W9P8UVYLNh2jY", tbc.NewFeeQuote())
 		assert.NoError(t, err)
 
 		var wif *WIF
@@ -169,7 +169,7 @@ func TestTx_Change(t *testing.T) {
 	})
 
 	t.Run("spend entire utxo - basic - change address", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 
 		err := tx.From(
@@ -179,7 +179,7 @@ func TestTx_Change(t *testing.T) {
 			4000000)
 		assert.NoError(t, err)
 
-		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", bt.NewFeeQuote())
+		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", tbc.NewFeeQuote())
 		assert.NoError(t, err)
 
 		var wif *WIF
@@ -196,7 +196,7 @@ func TestTx_Change(t *testing.T) {
 	})
 
 	t.Run("spend entire utxo - multi payouts - expected fee", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 
 		err := tx.From(
@@ -212,7 +212,7 @@ func TestTx_Change(t *testing.T) {
 		err = tx.PayToAddress("mxAoAyZFXX6LZBWhoam3vjm6xt9NxPQ15f", 3000000)
 		assert.NoError(t, err)
 
-		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", bt.NewFeeQuote())
+		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", tbc.NewFeeQuote())
 		assert.NoError(t, err)
 
 		var wif *WIF
@@ -230,7 +230,7 @@ func TestTx_Change(t *testing.T) {
 	})
 
 	t.Run("spend entire utxo - multi payouts - incorrect fee", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 
 		err := tx.From(
@@ -246,7 +246,7 @@ func TestTx_Change(t *testing.T) {
 		err = tx.PayToAddress("mxAoAyZFXX6LZBWhoam3vjm6xt9NxPQ15f", 3000000)
 		assert.NoError(t, err)
 
-		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", bt.NewFeeQuote())
+		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", tbc.NewFeeQuote())
 		assert.NoError(t, err)
 
 		var wif *WIF
@@ -266,7 +266,7 @@ func TestTx_Change(t *testing.T) {
 	})
 
 	t.Run("multiple Inputs, spend all", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 
 		err := tx.From(
@@ -283,7 +283,7 @@ func TestTx_Change(t *testing.T) {
 			5689)
 		assert.NoError(t, err)
 
-		err = tx.ChangeToAddress("1BxGFoRPSFgYxoAStEncL6HuELqPkV3JVj", bt.NewFeeQuote())
+		err = tx.ChangeToAddress("1BxGFoRPSFgYxoAStEncL6HuELqPkV3JVj", tbc.NewFeeQuote())
 		assert.NoError(t, err)
 
 		var wif *WIF
@@ -300,16 +300,16 @@ func TestTx_Change(t *testing.T) {
 
 func TestTx_ChangeToOutput(t *testing.T) {
 	tests := map[string]struct {
-		tx              *bt.Tx
+		tx              *tbc.Tx
 		index           uint
-		fees            *bt.FeeQuote
+		fees            *tbc.FeeQuote
 		expOutputTotal  uint64
 		expChangeOutput uint64
 		err             error
 	}{
 		"no change to add should return no change output": {
-			tx: func() *bt.Tx {
-				tx := bt.NewTx()
+			tx: func() *tbc.Tx {
+				tx := tbc.NewTx()
 				assert.NoError(t, tx.From(
 					"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
 					0,
@@ -319,13 +319,13 @@ func TestTx_ChangeToOutput(t *testing.T) {
 				return tx
 			}(),
 			index:           0,
-			fees:            bt.NewFeeQuote(),
+			fees:            tbc.NewFeeQuote(),
 			expOutputTotal:  1000,
 			expChangeOutput: 1000,
 			err:             nil,
 		}, "change to add should add change to output": {
-			tx: func() *bt.Tx {
-				tx := bt.NewTx()
+			tx: func() *tbc.Tx {
+				tx := tbc.NewTx()
 				assert.NoError(t, tx.From(
 					"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
 					0,
@@ -335,13 +335,13 @@ func TestTx_ChangeToOutput(t *testing.T) {
 				return tx
 			}(),
 			index:           0,
-			fees:            bt.NewFeeQuote(),
+			fees:            tbc.NewFeeQuote(),
 			expOutputTotal:  888,
 			expChangeOutput: 888,
 			err:             nil,
 		}, "change to add should add change to specified output": {
-			tx: func() *bt.Tx {
-				tx := bt.NewTx()
+			tx: func() *tbc.Tx {
+				tx := tbc.NewTx()
 				assert.NoError(t, tx.From(
 					"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
 					0,
@@ -354,13 +354,13 @@ func TestTx_ChangeToOutput(t *testing.T) {
 				return tx
 			}(),
 			index:           3,
-			fees:            bt.NewFeeQuote(),
+			fees:            tbc.NewFeeQuote(),
 			expOutputTotal:  2337,
 			expChangeOutput: 837,
 			err:             nil,
 		}, "index out of range should return error": {
-			tx: func() *bt.Tx {
-				tx := bt.NewTx()
+			tx: func() *tbc.Tx {
+				tx := tbc.NewTx()
 				assert.NoError(t, tx.From(
 					"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
 					0,
@@ -370,8 +370,8 @@ func TestTx_ChangeToOutput(t *testing.T) {
 				return tx
 			}(),
 			index: 1,
-			fees:  bt.NewFeeQuote(),
-			err:   bt.ErrOutputNoExist,
+			fees:  tbc.NewFeeQuote(),
+			err:   tbc.ErrOutputNoExist,
 		},
 	}
 	for name, test := range tests {

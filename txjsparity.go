@@ -1,9 +1,9 @@
-package bt
+package tbc
 
 import (
 	"fmt"
 
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 // estimateSizeLikeJS 对齐 tbc-lib-js Transaction._estimateSize：
@@ -56,7 +56,7 @@ func (tx *Tx) AdjustImplicitFeeToTarget(targetFee int) error {
 	last := len(tx.Outputs) - 1
 	newSat := int64(tx.Outputs[last].Satoshis) - int64(delta)
 	if newSat <= int64(DustLimit) {
-		return fmt.Errorf("bt: adjust implicit fee: change would be dust (delta=%d, targetFee=%d, oldFee=%d)", delta, targetFee, oldFee)
+		return fmt.Errorf("tbc: adjust implicit fee: change would be dust (delta=%d, targetFee=%d, oldFee=%d)", delta, targetFee, oldFee)
 	}
 	tx.Outputs[last].Satoshis = uint64(newSat)
 	return nil

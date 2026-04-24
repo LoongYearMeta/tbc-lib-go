@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter/errs"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/errs"
 )
 
 // scriptNumber represents a numeric value used in the scripting engine with

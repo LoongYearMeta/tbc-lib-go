@@ -1,5 +1,5 @@
 /*
-Package bt 提供创建和操作 Turing BC (TBC) 交易所需的核心功能。
+Package tbc 提供创建和操作 Turing BC (TBC) 交易所需的核心功能。
 
 本库与官方 JavaScript 库 [tbc-lib-js](https://github.com/TuringBitChain/tbc-lib-js)（npm 包名 `tbc-lib-js`）在交易与脚本等核心概念上保持对应，便于跨语言开发；人类可读说明见仓库内 docs/ 目录。
 
@@ -14,4 +14,4 @@ Package bt 提供创建和操作 Turing BC (TBC) 交易所需的核心功能。
 
 详细文档参见 docs/ 目录。
 */
-package bt
+package tbc

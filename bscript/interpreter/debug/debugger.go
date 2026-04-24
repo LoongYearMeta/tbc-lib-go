@@ -1,6 +1,6 @@
 package debug
 
-import "github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter"
+import "github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter"
 
 type (
 	// ThreadStateFunc debug handler for a threads state.

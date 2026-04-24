@@ -1,4 +1,4 @@
-package bt
+package tbc
 
 import (
 	"encoding/json"
@@ -139,7 +139,7 @@ type FeeQuote struct {
 //
 // A basic example of usage is shown below:
 //
-//  func Fee(ft bt.FeeType) *bt.Fee{
+//  func Fee(ft tbc.FeeType) *tbc.Fee{
 //     // you would not call this every time - this is just an example
 //     // you'd call this at app startup and store it / pass to a struct
 //     fq := NewFeeQuote()
@@ -151,13 +151,13 @@ type FeeQuote struct {
 //     }
 //
 //     // cache expired, fetch new quotes
-//     var stdFee *bt.Fee
-//     var dataFee *bt.Fee
+//     var stdFee *tbc.Fee
+//     var dataFee *tbc.Fee
 //
 //     // fetch quotes from MAPI server
 //
-//     fq.AddQuote(bt.FeeTypeStandard, stdFee)
-//     fq.AddQuote(bt.FeeTypeData, dataFee)
+//     fq.AddQuote(tbc.FeeTypeStandard, stdFee)
+//     fq.AddQuote(tbc.FeeTypeData, dataFee)
 //
 //     // MAPI returns a quote expiry
 //     exp, _ := time.Parse(time.RFC3339, resp.Quote.ExpirationTime)
@@ -200,7 +200,7 @@ func (f *FeeQuote) AddQuote(ft FeeType, fee *Fee) *FeeQuote {
 	return f
 }
 
-// Expiry will return the expiry timestamp for the `bt.FeeQuote` in a threadsafe manner.
+// Expiry will return the expiry timestamp for the `tbc.FeeQuote` in a threadsafe manner.
 func (f *FeeQuote) Expiry() time.Time {
 	f.mu.RLock()
 	defer f.mu.RUnlock()

@@ -4,9 +4,9 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter/debug"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/debug"
 	"github.com/stretchr/testify/assert"
 )
 

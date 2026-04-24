@@ -4,11 +4,11 @@ import (
 	"math/big"
 
 	"github.com/libsv/go-bk/bec"
-	"github.com/sCrypt-Inc/go-bt/v2"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter/errs"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter/scriptflag"
-	"github.com/sCrypt-Inc/go-bt/v2/sighash"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/errs"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/scriptflag"
+	"github.com/LoongYearMeta/tbc-lib-go/sighash"
 )
 
 // halfOrder is used to tame ECDSA malleability (see BIP0062).
@@ -29,14 +29,15 @@ type thread struct {
 	condStack       []int
 	savedFirstStack [][]byte // stack from first script for bip16 scripts
 
-	scriptParser OpcodeParser
-	scriptIdx    int
-	scriptOff    int
-	lastCodeSep  int
+	scriptParser  OpcodeParser
+	scriptIdx     int
+	scriptOff     int
+	currOpcodeOff int // offset of the opcode currently being executed (pre-parse-advance snapshot of scriptOff)
+	lastCodeSep   int
 
-	tx         *bt.Tx
+	tx         *tbc.Tx
 	inputIdx   int
-	prevOutput *bt.Output
+	prevOutput *tbc.Output
 
 	numOps int
 
@@ -72,8 +73,8 @@ func createThread(opts *execOpts) (*thread, error) {
 type execOpts struct {
 	lockingScript   *bscript.Script
 	unlockingScript *bscript.Script
-	previousTxOut   *bt.Output
-	tx              *bt.Tx
+	previousTxOut   *tbc.Output
+	tx              *tbc.Tx
 	inputIdx        int
 	flags           scriptflag.Flag
 	debugger        Debugger
@@ -422,6 +423,7 @@ func (t *thread) Step() (bool, error) {
 		return true, err
 	}
 
+	t.currOpcodeOff = t.scriptOff
 	opcode, err := t.scriptParser.GetParsedOpcode(&t.scriptOff, t.scripts[t.scriptIdx])
 
 	if err != nil {
@@ -453,6 +455,10 @@ func (t *thread) Step() (bool, error) {
 	}
 
 	if t.scriptOff < t.scripts[t.scriptIdx].Len() {
+		// Step() is finishing within the current script. After we return, AfterStep
+		// (and the next iteration's BeforeStep) should see the OPCODE-ABOUT-TO-RUN,
+		// i.e. the position the parser will resume from — which is scriptOff.
+		t.currOpcodeOff = t.scriptOff
 		return false, nil
 	}
 
@@ -801,6 +807,7 @@ func (t *thread) shiftScript() {
 
 	t.numOps = 0
 	t.scriptOff = 0
+	t.currOpcodeOff = 0
 	t.scriptIdx++
 	t.earlyReturnAfterGenesis = false
 }

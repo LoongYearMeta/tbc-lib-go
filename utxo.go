@@ -1,9 +1,9 @@
-package bt
+package tbc
 
 import (
 	"encoding/hex"
 
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 // UTXO 表示未花费交易输出（Unspent Transaction Output），用于创建交易输入。
@@ -22,7 +22,7 @@ type UTXO struct {
 	SequenceNumber uint32
 }
 
-// UTXOs 表示 *bt.UTXO 的切片，用于批量处理 UTXO。
+// UTXOs 表示 *tbc.UTXO 的切片，用于批量处理 UTXO。
 type UTXOs []*UTXO
 
 // NodeJSON 返回用于 JSON 序列化/反序列化的包装类型，兼容节点格式（txid, vout, scriptPubKey, amount）。
@@ -35,7 +35,7 @@ type UTXOs []*UTXO
 //
 // Unmarshalling 示例:
 //
-//	utxo := &bt.UTXO{}
+//	utxo := &tbc.UTXO{}
 //	if err := json.Unmarshal(bb, utxo.NodeJSON()); err != nil {}
 func (u *UTXO) NodeJSON() interface{} {
 	return &nodeUTXOWrapper{UTXO: u}

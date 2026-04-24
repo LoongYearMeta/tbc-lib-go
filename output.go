@@ -1,4 +1,4 @@
-package bt
+package tbc
 
 import (
 	"encoding/binary"
@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 /*
@@ -28,7 +28,7 @@ type Output struct {
 	LockingScript *bscript.Script
 }
 
-// ReadFrom reads from the `io.Reader` into the `bt.Output`.
+// ReadFrom reads from the `io.Reader` into the `tbc.Output`.
 func (o *Output) ReadFrom(r io.Reader) (int64, error) {
 	*o = Output{}
 	var bytesRead int64
@@ -101,13 +101,13 @@ func (o *Output) BytesForSigHash() []byte {
 	return buf
 }
 
-// NodeJSON returns a wrapped *bt.Output for marshalling/unmarshalling into a node output format.
+// NodeJSON returns a wrapped *tbc.Output for marshalling/unmarshalling into a node output format.
 //
 // Marshalling usage example:
 //  bb, err := json.Marshal(output.NodeJSON())
 //
 // Unmarshalling usage example:
-//  output := &bt.Output{}
+//  output := &tbc.Output{}
 //  if err := json.Unmarshal(bb, output.NodeJSON()); err != nil {}
 func (o *Output) NodeJSON() interface{} {
 	return &nodeOutputWrapper{Output: o}

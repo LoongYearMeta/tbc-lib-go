@@ -1,12 +1,12 @@
-package bt
+package tbc
 
 import (
 	"bytes"
 	"encoding/binary"
 
 	"github.com/libsv/go-bk/crypto"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/sighash"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/sighash"
 )
 
 // defaultHex is used to fix a bug in the original client (see if statement in the CalcInputSignatureHash func)

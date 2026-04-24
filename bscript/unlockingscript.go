@@ -1,6 +1,6 @@
 package bscript
 
-import "github.com/sCrypt-Inc/go-bt/v2/sighash"
+import "github.com/LoongYearMeta/tbc-lib-go/sighash"
 
 // NewP2PKHUnlockingScript creates a new unlocking script which spends
 // a P2PKH locking script from a public key, a signature, and

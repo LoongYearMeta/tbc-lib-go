@@ -1,4 +1,4 @@
-package bt
+package tbc
 
 // Message 实现（参考 tbc-lib-js 的 lib/message/message.js）
 //
@@ -19,7 +19,7 @@ import (
 
 	"github.com/libsv/go-bk/base58"
 	bkcrypto "github.com/libsv/go-bk/crypto"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 	secpECDSA "github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa"

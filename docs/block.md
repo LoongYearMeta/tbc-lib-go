@@ -2,7 +2,7 @@
 
 **参考：** [tbc-lib-js/docs/block.md](../../tbc-lib-js/docs/block.md)
 
-`bt.Block` 表示包含区块头与交易列表的区块，可从 hex 或字节反序列化；在提供完整交易列表时可校验默克尔根，**不保证**每笔交易的花费合法性（与 JS 文档表述一致）。
+`tbc.Block` 表示包含区块头与交易列表的区块，可从 hex 或字节反序列化；在提供完整交易列表时可校验默克尔根，**不保证**每笔交易的花费合法性（与 JS 文档表述一致）。
 
 ## 结构
 
@@ -20,9 +20,9 @@ type Block struct {
 ## 解析
 
 ```go
-block, err := bt.NewBlockFromString(hexEncodedBlock)
-block, err = bt.NewBlockFromBytes(blockBytes)
-block, err = bt.NewBlockFromRawBlock(rawPayload) // 含 8 字节前缀的原始载荷时
+block, err := tbc.NewBlockFromString(hexEncodedBlock)
+block, err = tbc.NewBlockFromBytes(blockBytes)
+block, err = tbc.NewBlockFromRawBlock(rawPayload) // 含 8 字节前缀的原始载荷时
 ```
 
 ## 校验
@@ -36,7 +36,7 @@ ok = block.Header.ValidTimestamp()
 ## 遍历交易
 
 ```go
-block, _ := bt.NewBlockFromString(hexBlock)
+block, _ := tbc.NewBlockFromString(hexBlock)
 for _, tx := range block.Transactions {
 	_ = tx.TxID() // hex 字符串
 }
@@ -45,16 +45,16 @@ for _, tx := range block.Transactions {
 ## 常量
 
 ```go
-_ = bt.MaxBlockSize
-_ = bt.BlockStartOffset
-_ = bt.NullHash
+_ = tbc.MaxBlockSize
+_ = tbc.BlockStartOffset
+_ = tbc.NullHash
 ```
 
 ## 与 tbc-lib-js 的对应关系
 
 | tbc-lib-js | tbc-lib-go |
 |------------|------------|
-| `new Block(hex)` | `bt.NewBlockFromString(hex)` |
+| `new Block(hex)` | `tbc.NewBlockFromString(hex)` |
 | `block.validMerkleRoot()` | `block.ValidMerkleRoot()` |
 | `block.header` | `block.Header` |
 | `block.transactions` | `block.Transactions` |

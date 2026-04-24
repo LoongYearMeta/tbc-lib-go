@@ -6,12 +6,12 @@ include .make/go.mk
 
 ## Not defined? Use default repo name which is the application
 ifeq ($(REPO_NAME),)
-	REPO_NAME="go-bt"
+	REPO_NAME="tbc-lib-go"
 endif
 
 ## Not defined? Use default repo owner
 ifeq ($(REPO_OWNER),)
-	REPO_OWNER="libsv"
+	REPO_OWNER="LoongYearMeta"
 endif
 
 .PHONY: clean

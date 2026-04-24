@@ -15,10 +15,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sCrypt-Inc/go-bt/v2"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter/errs"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter/scriptflag"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/errs"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/scriptflag"
 )
 
 var opcodeByName = make(map[string]byte)
@@ -303,33 +303,33 @@ func parseExpectedResult(expected string) ([]errs.ErrorCode, error) {
 
 // createSpendTx generates a basic spending transaction given the passed
 // signature and locking scripts.
-func createSpendingTx(sigScript, pkScript *bscript.Script, outputValue int64) *bt.Tx {
+func createSpendingTx(sigScript, pkScript *bscript.Script, outputValue int64) *tbc.Tx {
 
-	coinbaseTx := &bt.Tx{
+	coinbaseTx := &tbc.Tx{
 		Version:  1,
 		LockTime: 0,
-		Inputs: []*bt.Input{{
+		Inputs: []*tbc.Input{{
 			PreviousTxOutIndex: ^uint32(0),
 			UnlockingScript:    bscript.NewFromBytes([]byte{bscript.Op0, bscript.Op0}),
 			SequenceNumber:     0xffffffff,
 		}},
-		Outputs: []*bt.Output{{
+		Outputs: []*tbc.Output{{
 			Satoshis:      uint64(outputValue),
 			LockingScript: pkScript,
 		}},
 	}
 	coinbaseTx.Inputs[0].PreviousTxIDAdd(make([]byte, 32))
 
-	spendingTx := &bt.Tx{
+	spendingTx := &tbc.Tx{
 		Version:  1,
 		LockTime: 0,
-		Inputs: []*bt.Input{{
+		Inputs: []*tbc.Input{{
 			PreviousTxOutIndex: 0,
 			PreviousTxScript:   pkScript,
 			UnlockingScript:    sigScript,
 			SequenceNumber:     0xffffffff,
 		}},
-		Outputs: []*bt.Output{{
+		Outputs: []*tbc.Output{{
 			Satoshis:      uint64(outputValue),
 			LockingScript: bscript.NewFromBytes([]byte{}),
 		}},
@@ -430,6 +430,13 @@ func TestScripts(t *testing.T) {
 			t.Errorf("%s: result field is not a string", name)
 			continue
 		}
+		// TBC 重新定义了 0xba 为 OP_PUSHMETA、0xbb 为 OP_PARTIALHASH，
+		// 上游的 BAD_OPCODE 用例（把这些字节视为未定义 opcode）在本 fork 不再适用。
+		if resultStr == "BAD_OPCODE" &&
+			(strings.Contains(scriptSigStr, "0xba") || strings.Contains(scriptSigStr, "0xbb") ||
+				strings.Contains(scriptPubKeyStr, "0xba") || strings.Contains(scriptPubKeyStr, "0xbb")) {
+			continue
+		}
 		allowedErrorCodes, err := parseExpectedResult(resultStr)
 		if err != nil {
 			t.Errorf("%s: %v", name, err)
@@ -442,7 +449,7 @@ func TestScripts(t *testing.T) {
 		tx := createSpendingTx(scriptSig, scriptPubKey, inputAmt)
 
 		err = NewEngine().Execute(
-			WithTx(tx, 0, &bt.Output{LockingScript: scriptPubKey, Satoshis: uint64(inputAmt)}),
+			WithTx(tx, 0, &tbc.Output{LockingScript: scriptPubKey, Satoshis: uint64(inputAmt)}),
 			WithFlags(flags),
 		)
 
@@ -535,7 +542,7 @@ testloop:
 			continue
 		}
 
-		tx, err := bt.NewTxFromBytes(serializedTx)
+		tx, err := tbc.NewTxFromBytes(serializedTx)
 		if err != nil {
 			t.Errorf("bad test (arg 2 not msgtx %v) %d: %v", err,
 				i, test)
@@ -554,7 +561,7 @@ testloop:
 			continue
 		}
 
-		prevOuts := make(map[txIOKey]*bt.Output)
+		prevOuts := make(map[txIOKey]*tbc.Output)
 		for j, iinput := range inputs {
 			input, ok := iinput.([]interface{})
 			if !ok {
@@ -608,7 +615,7 @@ testloop:
 				}
 			}
 
-			v := &bt.Output{
+			v := &tbc.Output{
 				Satoshis:      uint64(inputValue),
 				LockingScript: script,
 			}
@@ -679,7 +686,7 @@ testloop:
 			continue
 		}
 
-		tx, err := bt.NewTxFromBytes(serializedTx)
+		tx, err := tbc.NewTxFromBytes(serializedTx)
 		if err != nil {
 			t.Errorf("bad test (arg 2 not msgtx %v) %d: %v", err,
 				i, test)
@@ -698,7 +705,7 @@ testloop:
 			continue
 		}
 
-		prevOuts := make(map[txIOKey]*bt.Output)
+		prevOuts := make(map[txIOKey]*tbc.Output)
 		for j, iinput := range inputs {
 			input, ok := iinput.([]interface{})
 			if !ok {
@@ -752,7 +759,7 @@ testloop:
 				}
 			}
 
-			v := &bt.Output{
+			v := &tbc.Output{
 				Satoshis:      uint64(inputValue),
 				LockingScript: script,
 			}

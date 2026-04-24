@@ -8,7 +8,7 @@ import (
 	"github.com/libsv/go-bk/crypto"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 // TestScriptCreation_P2PKH 测试支付到公钥哈希（P2PKH）脚本的创建

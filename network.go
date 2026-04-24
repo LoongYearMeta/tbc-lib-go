@@ -1,4 +1,4 @@
-package bt
+package tbc
 
 // Network 抽象层（参考 tbc-lib-js 的 lib/networks.js）
 //

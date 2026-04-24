@@ -7,12 +7,12 @@ import (
 
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bk/crypto"
-	"github.com/sCrypt-Inc/go-bt/v2"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/sighash"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/sighash"
 )
 
-// Getter implements the `bt.UnlockerGetter` interface. It unlocks a Tx locally,
+// Getter implements the `tbc.UnlockerGetter` interface. It unlocks a Tx locally,
 // using a bec PrivateKey.
 type Getter struct {
 	PrivateKey *bec.PrivateKey
@@ -22,11 +22,11 @@ type Getter struct {
 // as the calling `*local.Getter`.
 //
 // For an example implementation, see `examples/unlocker_getter/`.
-func (g *Getter) Unlocker(ctx context.Context, lockingScript *bscript.Script) (bt.Unlocker, error) {
+func (g *Getter) Unlocker(ctx context.Context, lockingScript *bscript.Script) (tbc.Unlocker, error) {
 	return &Simple{PrivateKey: g.PrivateKey}, nil
 }
 
-// Simple implements the a simple `bt.Unlocker` interface. It is used to build an unlocking script
+// Simple implements the a simple `tbc.Unlocker` interface. It is used to build an unlocking script
 // using a bec Private Key.
 type Simple struct {
 	PrivateKey *bec.PrivateKey
@@ -41,7 +41,7 @@ type Simple struct {
 // canonical in accordance with RFC6979 and BIP0062.
 //
 // For example usage, see `examples/create_tx/create_tx.go`
-func (l *Simple) UnlockingScript(ctx context.Context, tx *bt.Tx, params bt.UnlockerParams) (*bscript.Script, error) {
+func (l *Simple) UnlockingScript(ctx context.Context, tx *tbc.Tx, params tbc.UnlockerParams) (*bscript.Script, error) {
 	if params.SigHashFlags == 0 {
 		params.SigHashFlags = sighash.AllForkID
 	}

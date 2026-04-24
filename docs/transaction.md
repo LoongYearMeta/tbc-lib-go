@@ -2,7 +2,7 @@
 
 **参考：** [tbc-lib-js/docs/transaction.md](../../tbc-lib-js/docs/transaction.md)
 
-`bt.Tx` 对应官方库中的 `Transaction`：管理输入、输出、版本号与 `LockTime`（`uint32`），支持链式构造与序列化。
+`tbc.Tx` 对应官方库中的 `Transaction`：管理输入、输出、版本号与 `LockTime`（`uint32`），支持链式构造与序列化。
 
 ## 交易结构
 
@@ -14,10 +14,10 @@
 ## 创建与反序列化
 
 ```go
-tx := bt.NewTx()
+tx := tbc.NewTx()
 
-tx, err := bt.NewTxFromString(hexTx)
-tx, err = bt.NewTxFromBytes(txBytes)
+tx, err := tbc.NewTxFromString(hexTx)
+tx, err = tbc.NewTxFromBytes(txBytes)
 ```
 
 ## 添加输入
@@ -32,9 +32,9 @@ if err := tx.FromUTXOs(utxo1, utxo2); err != nil { /* ... */ }
 与 JS `transaction.from(utxos)` 相同的**链式**写法（失败时 `panic`，便于一行写完）：
 
 ```go
-tx := bt.NewTx().FromChain(utxo1, utxo2)
+tx := tbc.NewTx().FromChain(utxo1, utxo2)
 
-tx = bt.NewTx().FromStringChain(
+tx = tbc.NewTx().FromStringChain(
 	"a0a08e397203df68392ee95b3f08b0b3b3e2401410a38d46ae0874f74846f2e9",
 	0,
 	"76a914089acaba6af8b2b4fb4bed3b747ab1e4e60b496588ac",
@@ -47,17 +47,17 @@ tx = bt.NewTx().FromStringChain(
 ```go
 tx.To(address, satoshis) // PayToAddress，与 JS .to 对应
 
-outputs := []bt.ToOutput{{Address: "1A...", Amount: 1000}, {Address: "1B...", Amount: 2000}}
+outputs := []tbc.ToOutput{{Address: "1A...", Amount: 1000}, {Address: "1B...", Amount: 2000}}
 tx.ToMultiple(outputs)
 
 // 任意锁定脚本 + 金额
 _ = tx.PayTo(lockingScript, amountSat)
-_ = tx.AddOutput(&bt.Output{LockingScript: script, Satoshis: n})
+_ = tx.AddOutput(&tbc.Output{LockingScript: script, Satoshis: n})
 ```
 
 ## 找零与费率
 
-与 JS 的 `.change(addr)` + `.fee(sat)` 组合对应：Go 使用 **`Change(address string, feeQuote *bt.FeeQuote)`**。`feeQuote == nil` 时使用 `bt.NewFeeQuote()` 的默认报价（内部再区分 standard / data 等，见 `fees.go`）。
+与 JS 的 `.change(addr)` + `.fee(sat)` 组合对应：Go 使用 **`Change(address string, feeQuote *tbc.FeeQuote)`**。`feeQuote == nil` 时使用 `tbc.NewFeeQuote()` 的默认报价（内部再区分 standard / data 等，见 `fees.go`）。
 
 ```go
 tx.Change(changeAddress, nil)
@@ -72,7 +72,7 @@ tx.Change(changeAddress, nil)
 ```go
 import (
 	"context"
-	"github.com/sCrypt-Inc/go-bt/v2/unlocker"
+	"github.com/LoongYearMeta/tbc-lib-go/unlocker"
 )
 
 ctx := context.Background()
@@ -108,7 +108,7 @@ JS 文档描述了 `getSignatures` / `applySignature` 等流程。Go 库在输�
 
 | tbc-lib-js | tbc-lib-go |
 |------------|------------|
-| `new Transaction()` | `bt.NewTx()` |
+| `new Transaction()` | `tbc.NewTx()` |
 | `.from(utxo)` | `.FromChain(utxo)` 或 `FromUTXOs` |
 | `.to(addr, amount)` | `.To(addr, amount)` |
 | `.change(addr)` | `.Change(addr, feeQuote)`，`feeQuote` 可为 `nil` |

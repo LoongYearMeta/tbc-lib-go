@@ -7,7 +7,7 @@ package interpreter
 import (
 	"encoding/hex"
 
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter/errs"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/errs"
 )
 
 // asBool gets the boolean value of the byte array.

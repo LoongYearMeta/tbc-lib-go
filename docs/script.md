@@ -7,7 +7,7 @@
 ## 类型常量（字符串标签）
 
 ```go
-import "github.com/sCrypt-Inc/go-bt/v2/bscript"
+import "github.com/LoongYearMeta/tbc-lib-go/bscript"
 
 _ = bscript.ScriptTypePubKeyHash
 _ = bscript.ScriptTypeMultiSig
@@ -69,7 +69,7 @@ script.IsDataOut() // OP_RETURN 数据输出
 `tbc-lib-js` 的 `Interpreter#verify(inputScript, outputScript)` 参数顺序为 **先解锁脚本、后锁定脚本**。Go 的 `WithScripts` 为 **`WithScripts(lockingScript, unlockingScript)`**，顺序与 JS **相反**，请注意。
 
 ```go
-import "github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter"
+import "github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter"
 
 err := interpreter.NewEngine().Execute(
 	interpreter.WithScripts(lockingScript, unlockingScript),

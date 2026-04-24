@@ -1,13 +1,13 @@
-package bt
+package tbc
 
 import (
 	"context"
 
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/sighash"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/sighash"
 )
 
-// UnlockerParams params used for unlocking an input with a `bt.Unlocker`.
+// UnlockerParams params used for unlocking an input with a `tbc.Unlocker`.
 type UnlockerParams struct {
 	// InputIdx the input to be unlocked. [DEFAULT 0]
 	InputIdx uint32

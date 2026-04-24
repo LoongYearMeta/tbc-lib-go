@@ -2,7 +2,7 @@
 
 **参考：** [tbc-lib-js/docs/ecies.md](../../tbc-lib-js/docs/ecies.md)
 
-`bt.ECIES` 提供与 Electrum 兼容的 BIE1 消息格式，可与官方 `tbc-lib-js` 的 `ecies` 子模块互操作（选项语义与 JS 文档中的 `ephemeralKey` / `noKey` / `shortTag` 一致）。
+`tbc.ECIES` 提供与 Electrum 兼容的 BIE1 消息格式，可与官方 `tbc-lib-js` 的 `ecies` 子模块互操作（选项语义与 JS 文档中的 `ephemeralKey` / `noKey` / `shortTag` 一致）。
 
 ## 实现概要
 
@@ -25,14 +25,14 @@
 ```go
 import (
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	bt "github.com/sCrypt-Inc/go-bt/v2"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
 )
 
 bobPriv, _ := secp256k1.GeneratePrivateKey()
 bobPub := bobPriv.PubKey()
 
-cipher, err := bt.NewECIES(nil).PublicKey(bobPub).EncryptBIE1([]byte("a message"))
-plain, err := bt.NewECIES(nil).PrivateKey(bobPriv).DecryptBIE1(cipher)
+cipher, err := tbc.NewECIES(nil).PublicKey(bobPub).EncryptBIE1([]byte("a message"))
+plain, err := tbc.NewECIES(nil).PrivateKey(bobPriv).DecryptBIE1(cipher)
 _ = plain
 _ = err
 ```
@@ -42,10 +42,10 @@ _ = err
 ```go
 alicePriv, _ := secp256k1.GeneratePrivateKey()
 bobPriv, _ := secp256k1.GeneratePrivateKey()
-opts := &bt.ECIESOptions{NoKey: true}
+opts := &tbc.ECIESOptions{NoKey: true}
 
-iesAlice := bt.NewECIES(opts).PrivateKey(alicePriv).PublicKey(bobPriv.PubKey())
-iesBob := bt.NewECIES(opts).PrivateKey(bobPriv).PublicKey(alicePriv.PubKey())
+iesAlice := tbc.NewECIES(opts).PrivateKey(alicePriv).PublicKey(bobPriv.PubKey())
+iesBob := tbc.NewECIES(opts).PrivateKey(bobPriv).PublicKey(alicePriv.PubKey())
 
 msgAlice, _ := iesAlice.EncryptBIE1([]byte("Hello Bob"))
 plainBob, _ := iesBob.DecryptBIE1(msgAlice)
@@ -54,15 +54,15 @@ plainBob, _ := iesBob.DecryptBIE1(msgAlice)
 ## 便捷函数
 
 ```go
-cipher, err := bt.EncryptFor(bobPub, []byte("hello"), nil)
-plain, err := bt.DecryptWith(bobPriv, cipher, nil)
+cipher, err := tbc.EncryptFor(bobPub, []byte("hello"), nil)
+plain, err := tbc.DecryptWith(bobPriv, cipher, nil)
 ```
 
 ## 与 tbc-lib-js 的对应关系
 
 | tbc-lib-js | tbc-lib-go |
 |------------|------------|
-| `new IES(opts)` | `bt.NewECIES(opts)` |
+| `new IES(opts)` | `tbc.NewECIES(opts)` |
 | `.publicKey(pub)` | `.PublicKey(pub)` |
 | `.privateKey(priv)` | `.PrivateKey(priv)` |
 | `.encrypt(msg)` | `.EncryptBIE1([]byte(msg))` |

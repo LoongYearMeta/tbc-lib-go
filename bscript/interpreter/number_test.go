@@ -11,10 +11,10 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/sCrypt-Inc/go-bt/v2"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter/errs"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter/scriptflag"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/errs"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/scriptflag"
 )
 
 // hexToBytes converts the passed hex string into bytes and will panic if there
@@ -337,13 +337,13 @@ func TestScriptNumInt64(t *testing.T) {
 func TestDisasmString(t *testing.T) {
 	script, _ := bscript.NewFromHexString("3105abcdef4280548004abcdefc2877451a0637c757451a0637c757451a0637c757451a0637c757451a0637c756868686868")
 	prev, _ := bscript.NewFromHexString("a91464902b04c3d9ea558b7f2edb24758b383343a2d587")
-	tx := bt.NewTx()
-	in := &bt.Input{
+	tx := tbc.NewTx()
+	in := &tbc.Input{
 		UnlockingScript: script,
 	}
 	tx.Inputs = append(tx.Inputs, in)
 	if err := NewEngine().Execute(
-		WithTx(tx, 0, &bt.Output{LockingScript: prev}),
+		WithTx(tx, 0, &tbc.Output{LockingScript: prev}),
 		WithFlags(scriptflag.Bip16|scriptflag.VerifyCleanStack),
 	); err != nil {
 		t.Error(err)

@@ -1,8 +1,8 @@
 package interpreter
 
 import (
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript/interpreter/scriptflag"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript/interpreter/scriptflag"
 )
 
 // State a snapshot of a threads state during execution.
@@ -55,7 +55,10 @@ func (n *nopStateHandler) SetState(state *State) {}
 
 func (t *thread) State() *State {
 	scriptIdx := t.scriptIdx
-	offsetIdx := t.scriptOff
+	// OpcodeIdx reflects the opcode currently being executed, not the post-advance
+	// parser cursor. During a Step() we snapshot scriptOff into currOpcodeOff before
+	// GetParsedOpcode advances it; hooks then see the opcode that's actually running.
+	offsetIdx := t.currOpcodeOff
 	if scriptIdx >= len(t.scripts) {
 		scriptIdx = len(t.scripts) - 1
 		offsetIdx = t.scripts[scriptIdx].Len() - 1
@@ -136,6 +139,7 @@ func (t *thread) SetState(state *State) {
 	t.scripts = state.Scripts
 	t.scriptIdx = state.ScriptIdx
 	t.scriptOff = state.OpcodeIdx
+	t.currOpcodeOff = state.OpcodeIdx
 	t.lastCodeSep = state.LastCodeSeperatorIdx
 	t.numOps = state.NumOps
 	t.flags = state.Flags

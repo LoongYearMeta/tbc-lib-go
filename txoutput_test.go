@@ -1,4 +1,4 @@
-package bt_test
+package tbc_test
 
 import (
 	"crypto/rand"
@@ -11,15 +11,15 @@ import (
 
 	"github.com/libsv/go-bk/bip32"
 	"github.com/libsv/go-bk/chaincfg"
-	"github.com/sCrypt-Inc/go-bt/v2"
-	"github.com/sCrypt-Inc/go-bt/v2/bscript"
+	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/bscript"
 )
 
 func TestNewP2PKHOutputFromPubKeyHashStr(t *testing.T) {
 	t.Parallel()
 
 	t.Run("empty pubkey hash", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		err := tx.AddP2PKHOutputFromPubKeyHashStr(
 			"",
 			uint64(5000),
@@ -32,7 +32,7 @@ func TestNewP2PKHOutputFromPubKeyHashStr(t *testing.T) {
 	})
 
 	t.Run("invalid pubkey hash", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		err := tx.AddP2PKHOutputFromPubKeyHashStr(
 			"0",
 			uint64(5000),
@@ -42,7 +42,7 @@ func TestNewP2PKHOutputFromPubKeyHashStr(t *testing.T) {
 
 	t.Run("valid output", func(t *testing.T) {
 		// This is the PKH for address mtdruWYVEV1wz5yL7GvpBj4MgifCB7yhPd
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		err := tx.AddP2PKHOutputFromPubKeyHashStr(
 			"8fe80c75c9560e8b56ed64ea3c26e18d2c52211b",
 			uint64(5000),
@@ -59,13 +59,13 @@ func TestNewHashPuzzleOutput(t *testing.T) {
 	t.Parallel()
 
 	t.Run("invalid public key", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		err := tx.AddHashPuzzleOutput("", "0", uint64(5000))
 		assert.Error(t, err)
 	})
 
 	t.Run("missing secret and public key", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		err := tx.AddHashPuzzleOutput("", "", uint64(5000))
 
 		assert.NoError(t, err)
@@ -80,7 +80,7 @@ func TestNewHashPuzzleOutput(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, addr)
 
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		err = tx.AddHashPuzzleOutput("secret1", addr.PublicKeyHash, uint64(5000))
 
 		assert.NoError(t, err)
@@ -99,12 +99,12 @@ func TestNewOpReturnOutput(t *testing.T) {
 		"continue to write the Chronicle of everything. Thank you and goodnight from team SV."
 	dataBytes := []byte(data)
 
-	tx := bt.NewTx()
+	tx := tbc.NewTx()
 	err := tx.AddOpReturnOutput(dataBytes)
 	assert.NoError(t, err)
 
 	script := tx.Outputs[0].LockingScriptHexString()
-	dataLength := bt.VarInt(uint64(len(dataBytes))).Bytes()
+	dataLength := tbc.VarInt(uint64(len(dataBytes))).Bytes()
 
 	assert.Equal(t, "006a4d2201"+hex.EncodeToString(dataBytes), script)
 	assert.Equal(t, "fd2201", fmt.Sprintf("%x", dataLength))
@@ -114,7 +114,7 @@ func TestNewOpReturnPartsOutput(t *testing.T) {
 	t.Parallel()
 
 	dataBytes := [][]byte{[]byte("hi"), []byte("how"), []byte("are"), []byte("you")}
-	tx := bt.NewTx()
+	tx := tbc.NewTx()
 	err := tx.AddOpReturnPartsOutput(dataBytes)
 	assert.NoError(t, err)
 
@@ -125,14 +125,14 @@ func TestTx_TotalOutputSatoshis(t *testing.T) {
 	t.Parallel()
 
 	t.Run("greater than zero", func(t *testing.T) {
-		tx, err := bt.NewTxFromString("020000000180f1ada3ad8e861441d9ceab40b68ed98f13695b185cc516226a46697cc01f80010000006b483045022100fa3a0f8fa9fbf09c372b7a318fa6175d022c1d782f7b8bc5949a7c8f59ce3f35022005e0e84c26f26d892b484ff738d803a57626679389c8b302939460dab29a5308412103e46b62eea5db5898fb65f7dc840e8a1dbd8f08a19781a23f1f55914f9bedcd49feffffff02dec537b2000000001976a914ba11bcc46ecf8d88e0828ddbe87997bf759ca85988ac00943577000000001976a91418392a59fc1f76ad6a3c7ffcea20cfcb17bda9eb88ac6e000000")
+		tx, err := tbc.NewTxFromString("020000000180f1ada3ad8e861441d9ceab40b68ed98f13695b185cc516226a46697cc01f80010000006b483045022100fa3a0f8fa9fbf09c372b7a318fa6175d022c1d782f7b8bc5949a7c8f59ce3f35022005e0e84c26f26d892b484ff738d803a57626679389c8b302939460dab29a5308412103e46b62eea5db5898fb65f7dc840e8a1dbd8f08a19781a23f1f55914f9bedcd49feffffff02dec537b2000000001976a914ba11bcc46ecf8d88e0828ddbe87997bf759ca85988ac00943577000000001976a91418392a59fc1f76ad6a3c7ffcea20cfcb17bda9eb88ac6e000000")
 		assert.NoError(t, err)
 		assert.NotNil(t, tx)
 		assert.Equal(t, uint64((29.89999582+20.00)*1e8), tx.TotalOutputSatoshis())
 	})
 
 	t.Run("zero Outputs", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 		assert.Equal(t, uint64(0), tx.TotalOutputSatoshis())
 	})
@@ -140,7 +140,7 @@ func TestTx_TotalOutputSatoshis(t *testing.T) {
 
 func TestTx_PayToAddress(t *testing.T) {
 	t.Run("missing pay to address", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 		err := tx.From(
 			"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
@@ -154,7 +154,7 @@ func TestTx_PayToAddress(t *testing.T) {
 	})
 
 	t.Run("invalid pay to address", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 		err := tx.From(
 			"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
@@ -168,7 +168,7 @@ func TestTx_PayToAddress(t *testing.T) {
 	})
 
 	t.Run("valid pay to address", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		assert.NotNil(t, tx)
 		err := tx.From(
 			"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
@@ -206,7 +206,7 @@ func TestTx_PayTo(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			tx := bt.NewTx()
+			tx := tbc.NewTx()
 			assert.NotNil(t, tx)
 			err := tx.From(
 				"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
@@ -228,7 +228,7 @@ func TestTx_PayTo(t *testing.T) {
 
 func TestTx_AddP2PKHOutputFromBip32ExtKey(t *testing.T) {
 	t.Run("output is added", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 
 		var b [64]byte
 		_, err := rand.Read(b[:])
@@ -246,7 +246,7 @@ func TestTx_AddP2PKHOutputFromBip32ExtKey(t *testing.T) {
 	})
 
 	t.Run("invalid private key errors", func(t *testing.T) {
-		tx := bt.NewTx()
+		tx := tbc.NewTx()
 		derivationPath, err := tx.AddP2PKHOutputFromBip32ExtKey(&bip32.ExtendedKey{}, 6000)
 
 		assert.Error(t, err)
