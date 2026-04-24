@@ -43,13 +43,7 @@ var _ = func() {
 	_ = tbc.FromJSON
 	_ = tbc.FromObject
 	_ = tbc.FromString
-	_ = tbc.GetContractTxdata
-	_ = tbc.GetCurrentInputsdata
-	_ = tbc.GetCurrentTxdata
 	_ = tbc.GetNetwork
-	_ = tbc.GetPrePreTxdata
-	_ = tbc.GetPreTxdata
-	_ = tbc.GetSizeHex
 	_ = tbc.IsHexString
 	_ = tbc.IsValidTxID
 	_ = tbc.LittleEndianBytes
@@ -204,12 +198,4 @@ var _ = func() {
 
 	// util/pushmeta vars
 	_ = tbc.CurrentInputOutpointBytes
-
-	// util/ftunlock vars
-	_ = tbc.GetPreTxdata
-	_ = tbc.GetPrePreTxdata
-	_ = tbc.GetCurrentTxdata
-	_ = tbc.GetCurrentInputsdata
-	_ = tbc.GetContractTxdata
-	_ = tbc.GetSizeHex
 }
