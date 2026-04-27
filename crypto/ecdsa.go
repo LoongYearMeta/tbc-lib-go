@@ -1,6 +1,6 @@
 package crypto
 
-import "github.com/libsv/go-bk/bec"
+import "github.com/LoongYearMeta/tbc-lib-go/bec"
 
 // PrivateKey is a secp256k1 private key.
 type PrivateKey = bec.PrivateKey

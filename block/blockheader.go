@@ -9,7 +9,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/libsv/go-bk/crypto"
+	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 )

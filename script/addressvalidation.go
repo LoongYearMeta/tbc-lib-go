@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/libsv/go-bk/crypto"
+	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 )
 
 type a25 [25]byte

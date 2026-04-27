@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/libsv/go-bk/crypto"
+	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 	"github.com/pkg/errors"
 
 	"github.com/LoongYearMeta/tbc-lib-go/script"

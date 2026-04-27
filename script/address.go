@@ -4,9 +4,9 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/libsv/go-bk/base58"
-	"github.com/libsv/go-bk/bec"
-	"github.com/libsv/go-bk/crypto"
+	"github.com/LoongYearMeta/tbc-lib-go/base58"
+	"github.com/LoongYearMeta/tbc-lib-go/bec"
+	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 )
 
 const (

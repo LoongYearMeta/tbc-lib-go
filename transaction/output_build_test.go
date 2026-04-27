@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/libsv/go-bk/bip32"
-	"github.com/libsv/go-bk/chaincfg"
+	"github.com/LoongYearMeta/tbc-lib-go/bip32"
+	"github.com/LoongYearMeta/tbc-lib-go/chaincfg"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction"

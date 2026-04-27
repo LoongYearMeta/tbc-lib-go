@@ -1,0 +1,38 @@
+tbc-lib-go
+==========
+
+Portions of this software were derived from github.com/libsv/go-bk
+(commit history is preserved by file-level copyright headers) and are
+redistributed under the terms of the original ISC license.
+
+The vendored sources live under the following directories of this module:
+
+  base58/   — derived from libsv/go-bk/base58
+  bec/      — derived from libsv/go-bk/bec
+  bip32/    — derived from libsv/go-bk/bip32
+  chaincfg/ — derived from libsv/go-bk/chaincfg
+  crypto/   — Sha256/Sha256d/Ripemd160/Hash160 hash primitives and the
+              EncryptSingle/DecryptSingle helpers were derived from
+              libsv/go-bk/crypto
+  wif/      — derived from libsv/go-bk/wif
+
+Original ISC license:
+
+  Copyright (c) 2018-2021 The libsv developers
+
+  Permission to use, copy, modify, and distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+  ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+The bec/ subpackage in turn carries copyright notices from "The btcsuite
+developers" (originally upstreamed via libsv/go-bk from btcd's btcec). Those
+file-level headers are preserved verbatim in each .go source file under
+bec/.

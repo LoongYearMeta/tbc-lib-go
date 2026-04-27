@@ -5,8 +5,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/libsv/go-bk/bec"
-	"github.com/libsv/go-bk/crypto"
+	"github.com/LoongYearMeta/tbc-lib-go/bec"
+	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 	tbc "github.com/LoongYearMeta/tbc-lib-go"
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"

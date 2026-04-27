@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/libsv/go-bk/bec"
-	"github.com/libsv/go-bk/wif"
+	"github.com/LoongYearMeta/tbc-lib-go/bec"
+	"github.com/LoongYearMeta/tbc-lib-go/wif"
 	tbc "github.com/LoongYearMeta/tbc-lib-go"
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"

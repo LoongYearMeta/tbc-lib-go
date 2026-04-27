@@ -23,7 +23,7 @@ go get github.com/LoongYearMeta/tbc-lib-go
 | 未花费输出 | [unspentoutput.md](unspentoutput.md) | [unspentoutput.md](../../tbc-lib-js/docs/unspentoutput.md) |
 | ECIES | [ecies.md](ecies.md) | [ecies.md](../../tbc-lib-js/docs/ecies.md) |
 
-JS 文档中还列有 `address.md`、`privatekey.md` 等（Bitcore 风格索引）；Go 侧对应能力分散在 `script`（地址）、`github.com/libsv/go-bk/bec`（密钥）等包中，本库以交易与脚本为主线，密钥示例见下文。
+JS 文档中还列有 `address.md`、`privatekey.md` 等（Bitcore 风格索引）；Go 侧对应能力分散在 `script`（地址）、内置 `bec`（密钥）等包中，本库以交易与脚本为主线，密钥示例见下文。
 
 ## 链上 HTTP（索引器 / 广播）
 
@@ -39,8 +39,8 @@ package main
 import (
 	"context"
 
-	"github.com/libsv/go-bk/bec"
 	tbc "github.com/LoongYearMeta/tbc-lib-go"
+	"github.com/LoongYearMeta/tbc-lib-go/bec"
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/unlocker"
 )

@@ -15,8 +15,8 @@ import (
 	"math/big"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	"github.com/libsv/go-bk/base58"
-	"github.com/libsv/go-bk/crypto"
+	"github.com/LoongYearMeta/tbc-lib-go/base58"
+	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 )
 
 // Bech32m 字符集 (BIP-350)

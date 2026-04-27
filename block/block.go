@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/libsv/go-bk/crypto"
+	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction"

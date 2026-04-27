@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
-	"github.com/libsv/go-bk/crypto"
+	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 	"github.com/stretchr/testify/assert"
 )
 

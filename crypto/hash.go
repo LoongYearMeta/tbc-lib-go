@@ -1,17 +1,35 @@
-// Package crypto mirrors tbc-lib-js lib/crypto/ and re-exports the
-// underlying libsv/go-bk primitives under a TBC-flavored API.
+// Package crypto mirrors tbc-lib-js lib/crypto/. Hash primitives below were
+// originally part of github.com/libsv/go-bk/crypto and are vendored here under
+// the original ISC license (see NOTICE).
 package crypto
 
-import "github.com/libsv/go-bk/crypto"
+import (
+	"crypto/sha256"
 
-// Sha256 returns the single SHA-256 of b.
-func Sha256(b []byte) []byte { return crypto.Sha256(b) }
+	"golang.org/x/crypto/ripemd160"
+)
 
-// Sha256d returns the double SHA-256 of b (Bitcoin's "hash256").
-func Sha256d(b []byte) []byte { return crypto.Sha256d(b) }
+// Sha256 calculates hash(b) and returns the resulting bytes.
+func Sha256(b []byte) []byte {
+	data := sha256.Sum256(b)
+	return data[:]
+}
 
-// Ripemd160 returns the RIPEMD-160 of b.
-func Ripemd160(b []byte) []byte { return crypto.Ripemd160(b) }
+// Sha256d calculates hash(hash(b)) and returns the resulting bytes.
+func Sha256d(b []byte) []byte {
+	first := Sha256(b)
+	return Sha256(first[:])
+}
 
-// Hash160 returns RIPEMD-160(SHA-256(b)) — Bitcoin's public-key-hash.
-func Hash160(b []byte) []byte { return crypto.Hash160(b) }
+// Ripemd160 hashes with RIPEMD160.
+func Ripemd160(b []byte) []byte {
+	ripe := ripemd160.New()
+	_, _ = ripe.Write(b[:])
+	return ripe.Sum(nil)
+}
+
+// Hash160 hashes with SHA256 and then hashes again with RIPEMD160.
+func Hash160(b []byte) []byte {
+	hash := Sha256(b)
+	return Ripemd160(hash[:])
+}

@@ -17,8 +17,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/libsv/go-bk/base58"
-	bkcrypto "github.com/libsv/go-bk/crypto"
+	"github.com/LoongYearMeta/tbc-lib-go/base58"
+	bkcrypto "github.com/LoongYearMeta/tbc-lib-go/crypto"
 
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"

@@ -3,7 +3,7 @@ package script
 import (
 	"testing"
 
-	"github.com/libsv/go-bk/wif"
+	"github.com/LoongYearMeta/tbc-lib-go/wif"
 	"github.com/stretchr/testify/assert"
 )
 

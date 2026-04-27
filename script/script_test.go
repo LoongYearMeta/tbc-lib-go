@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/libsv/go-bk/bec"
-	"github.com/libsv/go-bk/bip32"
-	"github.com/libsv/go-bk/chaincfg"
+	"github.com/LoongYearMeta/tbc-lib-go/bec"
+	"github.com/LoongYearMeta/tbc-lib-go/bip32"
+	"github.com/LoongYearMeta/tbc-lib-go/chaincfg"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/libsv/go-bk/crypto"
+	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 )
 
 // BIP276 proposes a scheme for encoding typed bitcoin related data in a user-friendly way

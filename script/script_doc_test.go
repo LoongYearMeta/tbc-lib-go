@@ -4,8 +4,8 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/libsv/go-bk/bec"
-	"github.com/libsv/go-bk/crypto"
+	"github.com/LoongYearMeta/tbc-lib-go/bec"
+	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/LoongYearMeta/tbc-lib-go/script"

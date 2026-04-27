@@ -3,7 +3,7 @@ package interpreter
 import (
 	"math/big"
 
-	"github.com/libsv/go-bk/bec"
+	"github.com/LoongYearMeta/tbc-lib-go/bec"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction"
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/script/interpreter/errs"

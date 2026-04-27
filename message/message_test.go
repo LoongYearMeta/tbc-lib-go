@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
-	bkcrypto "github.com/libsv/go-bk/crypto"
+	bkcrypto "github.com/LoongYearMeta/tbc-lib-go/crypto"
 	"github.com/LoongYearMeta/tbc-lib-go/script"
 )
 

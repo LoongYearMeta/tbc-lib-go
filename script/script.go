@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/libsv/go-bk/bec"
-	"github.com/libsv/go-bk/bip32"
-	"github.com/libsv/go-bk/crypto"
+	"github.com/LoongYearMeta/tbc-lib-go/bec"
+	"github.com/LoongYearMeta/tbc-lib-go/bip32"
+	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 )
 
 // ScriptKey types.

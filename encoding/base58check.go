@@ -1,6 +1,6 @@
 package encoding
 
-import "github.com/libsv/go-bk/base58"
+import "github.com/LoongYearMeta/tbc-lib-go/base58"
 
 // Base58CheckEncode prepends the single-byte version prefix and appends a
 // 4-byte double-SHA256 checksum, returning the modified-base58 encoding of
