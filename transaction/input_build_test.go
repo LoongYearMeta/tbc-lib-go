@@ -430,7 +430,7 @@ func TestTx_Fund(t *testing.T) {
 				iptFn = test.utxoGetterFuncOverrider(test.utxos)
 			}
 
-			err := test.tx.Fund(context.Background(), transaction.NewFeeQuote(), iptFn)
+			err := test.tx.Fund(context.Background(), legacyDefaultFeeQuote(), iptFn)
 			if test.expErr != nil {
 				assert.Error(t, err)
 				assert.EqualError(t, err, test.expErr.Error())
@@ -588,7 +588,7 @@ func TestTx_Fund_Deficit(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			deficits := make([]uint64, 0)
-			test.tx.Fund(context.Background(), transaction.NewFeeQuote(), func(ctx context.Context, deficit uint64) ([]*transaction.UTXO, error) {
+			test.tx.Fund(context.Background(), legacyDefaultFeeQuote(), func(ctx context.Context, deficit uint64) ([]*transaction.UTXO, error) {
 				if len(test.utxos) == 0 {
 					return nil, transaction.ErrNoUTXO
 				}
@@ -655,7 +655,7 @@ func TestTx_FillInput(t *testing.T) {
 				"76a914af2590a45ae401651fdbdf59a76ad43d1862534088ac",
 				4000000,
 			))
-			assert.NoError(t, tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", transaction.NewFeeQuote()))
+			assert.NoError(t, tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", legacyDefaultFeeQuote()))
 
 			err := tx.FillInput(context.Background(), test.unlocker, transaction.UnlockerParams{
 				InputIdx:     test.inputIdx,
@@ -686,7 +686,7 @@ func TestTx_FillAllInputs(t *testing.T) {
 			4000000)
 		assert.NoError(t, err)
 
-		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", transaction.NewFeeQuote())
+		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", legacyDefaultFeeQuote())
 		assert.NoError(t, err)
 
 		var wif *WIF

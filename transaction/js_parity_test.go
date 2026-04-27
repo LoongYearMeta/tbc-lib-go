@@ -36,7 +36,7 @@ func TestChangeToAddress_implicitFee_matchesCeilJSFormula(t *testing.T) {
 
 	std, err := transaction.NewFeeQuote().Fee(transaction.FeeTypeStandard)
 	require.NoError(t, err)
-	// 224B，默认 MAPI 5 sat/10B → feePerKb=500 → ceil(224*500/1000)=112
+	// 224B，默认 100 sat/1000B（与 tbc-lib-js Transaction.FEE_PER_KB=100 对齐）→ ceil(224*100/1000)=23
 	wantEst := 224
 	wantFee := transaction.CeilMiningFeeFromEstimatedBytes(wantEst, std.MiningFee)
 

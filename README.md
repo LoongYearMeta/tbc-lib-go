@@ -1,182 +1,121 @@
-# go-bt
+# tbc-lib-go
 
-> The go-to Bitcoin Transaction (BT) GoLang library  
+> TuringBitChain (TBC) 的 Go SDK：交易构造、脚本、区块、签名、ECIES、消息签名等链上核心能力。
 
-[![Release](https://img.shields.io/github/release-pre/libsv/go-bt.svg?logo=github&style=flat&v=1)](https://github.com/libsv/go-bt/releases)
-[![Build Status](https://img.shields.io/github/workflow/status/libsv/go-bt/run-go-tests?logo=github&v=3)](https://github.com/libsv/go-bt/actions)
-[![Report](https://goreportcard.com/badge/github.com/libsv/go-bt?style=flat&v=1)](https://goreportcard.com/report/github.com/libsv/go-bt)
-[![codecov](https://codecov.io/gh/libsv/go-bt/branch/master/graph/badge.svg?v=1)](https://codecov.io/gh/libsv/go-bt)
-[![Go](https://img.shields.io/github/go-mod/go-version/libsv/go-bt?v=1)](https://golang.org/)
-[![Sponsor](https://img.shields.io/badge/sponsor-libsv-181717.svg?logo=github&style=flat&v=3)](https://github.com/sponsors/libsv)
-[![Donate](https://img.shields.io/badge/donate-bitcoin-ff9900.svg?logo=bitcoin&style=flat&v=3)](https://gobitcoinsv.com/#sponsor)
-[![Mergify Status][mergify-status]][mergify]
+`tbc-lib-go` 与官方 JavaScript 库 [`tbc-lib-js`](https://github.com/TuringBitChain/tbc-lib-js)
+**保持 API 与序列化结果对齐**（fee 估算、sighash、网络参数局等都按 JS 校准）。
+许多源文件以 `// 与 tbc-lib-js X.Y 一致` 形式注明对齐位置，便于跨语言对照。
 
-[mergify]: https://mergify.io
-[mergify-status]: https://img.shields.io/endpoint.svg?url=https://gh.mergify.io/badges/libsv/go-bt&style=flat
-<br/>
+- Module path：`github.com/LoongYearMeta/tbc-lib-go`
+- 默认网络：Livenet；DustLimit = 1（不是 BTC 的 546）；默认 fee quote = 100 sat / 1 KB（与 tbc-lib-js `Transaction.FEE_PER_KB = 100` 对齐）
 
-## Table of Contents
+## 安装
 
-- [Installation](#installation)
-- [Documentation](#documentation)
-- [Examples & Tests](#examples--tests)
-- [Benchmarks](#benchmarks)
-- [Code Standards](#code-standards)
-- [Usage](#usage)
-- [Maintainers](#maintainers)
-- [Contributing](#contributing)
-- [License](#license)
-
-<br/>
-
-## Installation
-
-**go-bt** requires a [supported release of Go](https://golang.org/doc/devel/release.html#policy).
-
-```shell script
-go get -u github.com/libsv/go-bt
+```bash
+go get github.com/LoongYearMeta/tbc-lib-go
 ```
 
-<br/>
+要求一个 [当前受支持的 Go 版本](https://go.dev/doc/devel/release)；模块声明 `go 1.17`。
 
-## Documentation
+## 快速开始
 
-View the generated [documentation](https://pkg.go.dev/github.com/libsv/go-bt)
+链式 API 与 `tbc-lib-js` 中 `Transaction().from().to().change().sign()` 思路一致：
 
-[![GoDoc](https://godoc.org/github.com/libsv/go-bt?status.svg&style=flat)](https://pkg.go.dev/github.com/libsv/go-bt)
+```go
+package main
 
-For more information around the technical aspects of Bitcoin, please see the updated [Bitcoin Wiki](https://wiki.bitcoinsv.io/index.php/Main_Page)
+import (
+    "context"
 
-<br/>
+    tbc "github.com/LoongYearMeta/tbc-lib-go"
+    "github.com/LoongYearMeta/tbc-lib-go/bec"
+    "github.com/LoongYearMeta/tbc-lib-go/unlocker"
+)
 
-### Features
+func example(utxo *tbc.UTXO, priv *bec.PrivateKey, toAddr, changeAddr string) {
+    ctx := context.Background()
+    tx := tbc.NewTx().
+        FromChain(utxo).
+        To(toAddr, 50_000).
+        Change(changeAddr, nil) // nil → 使用默认 FeeQuote
 
-- Full featured Bitcoin transactions and transaction manipulation/functionality
-- Auto-fee calculations for change outputs
-- Transaction fee calculation and related checks
-- Interfaced signing/unlocking of transaction inputs for easy adaptation/custimisation and extendability for any use case
-- Bitcoin Transaction [Script](bscript) functionality
-  - Bitcoin script engine ([interpreter](bscript/interpreter))
-  - P2PKH (base58 addresses)
-  - Data (OP_RETURN)
-  - [BIP276](https://github.com/moneybutton/bips/blob/master/bip-0276.mediawiki)
-
-#### Coming Soon! (18 months<sup>TM</sup>)
-
-- Complete SigHash Flag Capability
-- MultiSig functionality
-
-<details>
-<summary><strong><code>Library Deployment</code></strong></summary>
-<br/>
-
-[goreleaser](https://github.com/goreleaser/goreleaser) for easy binary or library deployment to Github and can be installed via: `brew install goreleaser`.
-
-The [.goreleaser.yml](.goreleaser.yml) file is used to configure [goreleaser](https://github.com/goreleaser/goreleaser).
-
-Use `make release-snap` to create a snapshot version of the release, and finally `make release` to ship to production.
-</details>
-
-<details>
-<summary><strong><code>Makefile Commands</code></strong></summary>
-<br/>
-
-View all `makefile` commands
-
-```shell script
-make help
+    tx.Sign(ctx, &unlocker.Getter{PrivateKey: priv})
+    _ = tx.String()
+}
 ```
 
-List of all current commands:
+链式方法（`FromChain` / `To` / `Change` / `Sign`）**遇错 panic**，对应 JS 的 throw。
+若需要返回 error，请使用同名前缀的非链式版本：`From` / `FromUTXOs` / `PayToAddress`
+/ `ChangeToAddress` / `FillAllInputs`。
 
-```text
-all                  Runs multiple commands
-clean                Remove previous builds and any test cache data
-clean-mods           Remove all the Go mod cache
-coverage             Shows the test coverage
-godocs               Sync the latest tag with GoDocs
-help                 Show this help message
-install              Install the application
-install-go           Install the application (Using Native Go)
-lint                 Run the golangci-lint application (install if not found)
-release              Full production release (creates release in Github)
-release              Runs common.release then runs godocs
-release-snap         Test the full release (build binaries)
-release-test         Full production test release (everything except deploy)
-replace-version      Replaces the version in HTML/JS (pre-deploy)
-tag                  Generate a new tag and push (tag version=0.0.0)
-tag-remove           Remove a tag if found (tag-remove version=0.0.0)
-tag-update           Update an existing tag to current commit (tag-update version=0.0.0)
-test                 Runs vet, lint and ALL tests
-test-ci              Runs all tests via CI (exports coverage)
-test-ci-no-race      Runs all tests via CI (no race) (exports coverage)
-test-ci-short        Runs unit tests via CI (exports coverage)
-test-short           Runs vet, lint and tests (excludes integration tests)
-uninstall            Uninstall the application (and remove files)
-update-linter        Update the golangci-lint package (macOS only)
-vet                  Run the Go vet application
+更多主题示例见 [`docs/index.md`](docs/index.md) 及其下的分主题文档（transaction / block /
+script / networks / unspentoutput / ecies）。
+
+## 仓库布局
+
+自 JS-style layout 重构起，仓库按 `tbc-lib-js/lib/` 拓扑同构组织，根包是**门面（facade）**：
+
+```
+github.com/LoongYearMeta/tbc-lib-go
+├── tbc.go                 门面：re-export 历史 tbc.X 符号
+├── transaction/           交易、输入/输出、费率、签名哈希、JSON
+│   └── sighash/           SIGHASH flag 常量
+├── script/                脚本构造、地址、BIP276；含 interpreter/
+├── block/                 Block / BlockHeader / MerkleBlock
+├── networks/              Livenet / Testnet / Regtest / STN
+├── message/               消息签名 / 验签
+├── ecies/                 ECIES (BIE1)
+├── crypto/                Hash / ECDSA / Signature / BN / 随机数
+├── encoding/              VarInt / Base58 / Base58Check / BufferReader/Writer / Hex
+├── util/
+│   ├── pushmeta/          OP_PUSH_META outpoint 辅助（TBC 独有）
+│   └── partialsha256/     部分 SHA256 状态
+├── taproot/               Taproot 数据结构（JS 无对应）
+├── unlocker/              基于私钥的 Unlocker 实现
+│
+├── base58/ bec/ bip32/ chaincfg/ wif/   
+│
+├── bscript/               forwarder：转发到 script/
+└── sighash/               forwarder：转发到 transaction/sighash/
 ```
 
-</details>
+详见 [`文件结构说明.md`](文件结构说明.md)。
 
-<br/>
+### 两种 import 风格
 
-## Examples & Tests
+- **门面（推荐用于历史代码）**：`tbc.Tx`、`tbc.NewTx()`、`tbc.Livenet`、`tbc.ErrNoUTXO` 等
+  全部仍可用，门面层用类型别名做 zero-cost re-export，方法集与子包完全一致。
+- **直接按子包**（推荐用于新代码）：`transaction.Tx == tbc.Tx`，`script.Script`、
+  `block.Block`、`networks.Livenet`、`encoding.VarInt` 等可分别 import，依赖范围更小。
 
-All unit tests and [examples](examples) run via [Github Actions](https://github.com/libsv/go-bt/actions) and
-uses [Go version 1.16.x](https://golang.org/doc/go1.16). View the [configuration file](.github/workflows/run-tests.yml).
+## 开发
 
-Run all tests (including integration tests)
-
-```shell script
-make test
+```bash
+make test            # lint + go test ./... -v（完整套件）
+make test-short      # lint + go test ./... -v -test.short
+make test-unit       # go test ./... -race -cover（CI 跑的就是这个）
+make test-ci-no-race # CI 无 race 变体
+make lint            # golangci-lint v1.45.2（已在 .golangci.yml 中钉版本）
+make vet             # go vet ./...
+make bench           # go test -bench=. -benchmem
+make coverage        # 生成 coverage 报告
 ```
 
-Run tests (excluding integration tests)
+跑单个测试：
 
-```shell script
-make test-short
+```bash
+go test ./transaction/ -run TestJSEstimateSize_oneP2PKHInputOneP2PKHOutput -v
+go test ./script/ -run TestScript -v
 ```
 
-<br/>
+## 文档
 
-## Benchmarks
-
-Run the Go [benchmarks](tx_test.go):
-
-```shell script
-make bench
-```
-
-<br/>
-
-## Code Standards
-
-Read more about this Go project's [code standards](.github/CODE_STANDARDS.md).
-
-<br/>
-
-## Usage
-
-View the [examples](examples)
-
-<br/>
-
-## Contributing
-
-View the [contributing guidelines](.github/CONTRIBUTING.md) and please follow the [code of conduct](.github/CODE_OF_CONDUCT.md).
-
-### How can I help?
-
-All kinds of contributions are welcome :raised_hands:!
-The most basic way to show your support is to star :star2: the project, or to raise issues :speech_balloon:.
-You can also support this project by [becoming a sponsor on GitHub](https://github.com/sponsors/libsv) :clap:
-or by making a [**bitcoin donation**](https://gobitcoinsv.com/#sponsor) to ensure this journey continues indefinitely! :rocket:
-
-[![Stars](https://img.shields.io/github/stars/libsv/go-bt?label=Please%20like%20us&style=social)](https://github.com/libsv/go-bt/stargazers)
-
-<br/>
+- [`docs/index.md`](docs/index.md) — 文档入口与分主题索引
+- 主题文档：[`docs/transaction.md`](docs/transaction.md)、[`docs/block.md`](docs/block.md)、
+  [`docs/script.md`](docs/script.md)、[`docs/networks.md`](docs/networks.md)、
+  [`docs/unspentoutput.md`](docs/unspentoutput.md)、[`docs/ecies.md`](docs/ecies.md)
+- [`文件结构说明.md`](文件结构说明.md) — 目录与子包详解
 
 ## License
 
-[![License](https://img.shields.io/github/license/libsv/go-bt.svg?style=flat&v=1)](LICENSE)
+[ISC](LICENSE)。

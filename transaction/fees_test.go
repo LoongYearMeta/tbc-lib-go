@@ -17,10 +17,10 @@ func TestExtractDataFee(t *testing.T) {
 		assert.NotNil(t, fee)
 		assert.NoError(t, err)
 		assert.Equal(t, FeeTypeData, fee.FeeType)
-		assert.Equal(t, 5, fee.MiningFee.Satoshis)
-		assert.Equal(t, 10, fee.MiningFee.Bytes)
-		assert.Equal(t, 5, fee.RelayFee.Satoshis)
-		assert.Equal(t, 10, fee.RelayFee.Bytes)
+		assert.Equal(t, 100, fee.MiningFee.Satoshis)
+		assert.Equal(t, 1000, fee.MiningFee.Bytes)
+		assert.Equal(t, 100, fee.RelayFee.Satoshis)
+		assert.Equal(t, 1000, fee.RelayFee.Bytes)
 	})
 
 	t.Run("no data fee found", func(t *testing.T) {
@@ -39,10 +39,10 @@ func TestExtractStandardFee(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, fee)
 		assert.Equal(t, FeeTypeStandard, fee.FeeType)
-		assert.Equal(t, 5, fee.MiningFee.Satoshis)
-		assert.Equal(t, 10, fee.MiningFee.Bytes)
-		assert.Equal(t, 5, fee.RelayFee.Satoshis)
-		assert.Equal(t, 10, fee.RelayFee.Bytes)
+		assert.Equal(t, 100, fee.MiningFee.Satoshis)
+		assert.Equal(t, 1000, fee.MiningFee.Bytes)
+		assert.Equal(t, 100, fee.RelayFee.Satoshis)
+		assert.Equal(t, 1000, fee.RelayFee.Bytes)
 	})
 
 	t.Run("no standard fee found", func(t *testing.T) {

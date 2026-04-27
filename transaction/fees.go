@@ -299,34 +299,34 @@ type Fee struct {
 	RelayFee  FeeUnit `json:"relayFee"` // Fee for retaining Tx in secondary mempool
 }
 
-// defaultStandardFee returns the default
-// standard fees offered by most miners.
+// defaultStandardFee returns the default standard fees. 100 sat / 1000 bytes
+// matches tbc-lib-js Transaction.FEE_PER_KB = 100.
 func defaultStandardFee() *Fee {
 	return &Fee{
 		FeeType: FeeTypeStandard,
 		MiningFee: FeeUnit{
-			Satoshis: 5,
-			Bytes:    10,
+			Satoshis: 100,
+			Bytes:    1000,
 		},
 		RelayFee: FeeUnit{
-			Satoshis: 5,
-			Bytes:    10,
+			Satoshis: 100,
+			Bytes:    1000,
 		},
 	}
 }
 
-// defaultDataFee returns the default
-// data fees offered by most miners.
+// defaultDataFee returns the default data fees. 100 sat / 1000 bytes matches
+// tbc-lib-js Transaction.FEE_PER_KB = 100.
 func defaultDataFee() *Fee {
 	return &Fee{
 		FeeType: FeeTypeData,
 		MiningFee: FeeUnit{
-			Satoshis: 5,
-			Bytes:    10,
+			Satoshis: 100,
+			Bytes:    1000,
 		},
 		RelayFee: FeeUnit{
-			Satoshis: 5,
-			Bytes:    10,
+			Satoshis: 100,
+			Bytes:    1000,
 		},
 	}
 }

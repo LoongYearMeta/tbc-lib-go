@@ -587,7 +587,7 @@ func Test_EstimateIsFeePaidEnough(t *testing.T) {
 				))
 
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 256559))
-				assert.NoError(t, tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", transaction.NewFeeQuote()))
+				assert.NoError(t, tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", legacyDefaultFeeQuote()))
 				return tx
 			}(),
 			expSize: &transaction.TxSize{
@@ -658,7 +658,7 @@ func Test_EstimateIsFeePaidEnough(t *testing.T) {
 				))
 
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 256559))
-				assert.NoError(t, tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", transaction.NewFeeQuote()))
+				assert.NoError(t, tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", legacyDefaultFeeQuote()))
 				tx.FillAllInputs(context.Background(), &unlocker.Getter{PrivateKey: w.PrivKey})
 				return tx
 			}(),
@@ -737,7 +737,7 @@ func Test_EstimateIsFeePaidEnough(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			fee := transaction.NewFeeQuote()
+			fee := legacyDefaultFeeQuote()
 			isEnough, err := test.tx.EstimateIsFeePaidEnough(fee)
 			assert.NoError(t, err)
 			assert.Equal(t, test.isEnough, isEnough)
@@ -776,7 +776,7 @@ func Test_IsFeePaidEnough(t *testing.T) {
 					0, "76a91455b61be43392125d127f1780fb038437cd67ef9c88ac", 834709))
 
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 256559))
-				assert.NoError(t, tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", transaction.NewFeeQuote()))
+				assert.NoError(t, tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", legacyDefaultFeeQuote()))
 				return tx
 			}(),
 			expSize: &transaction.TxSize{
@@ -841,7 +841,7 @@ func Test_IsFeePaidEnough(t *testing.T) {
 					0, "76a914ff8c9344d4e76c0580420142f697e5fc2ce5c98e88ac", 834709))
 
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 256559))
-				assert.NoError(t, tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", transaction.NewFeeQuote()))
+				assert.NoError(t, tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", legacyDefaultFeeQuote()))
 				tx.FillAllInputs(context.Background(), &unlocker.Getter{PrivateKey: w.PrivKey})
 				return tx
 			}(),
@@ -916,7 +916,7 @@ func Test_IsFeePaidEnough(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			fee := transaction.NewFeeQuote()
+			fee := legacyDefaultFeeQuote()
 			isEnough, err := test.tx.IsFeePaidEnough(fee)
 			assert.NoError(t, err)
 			assert.Equal(t, test.isEnough, isEnough)
@@ -959,7 +959,7 @@ func Test_EstimateFeesPaid(t *testing.T) {
 					0, "76a91455b61be43392125d127f1780fb038437cd67ef9c88ac", 1000))
 
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 100))
-				assert.NoError(t, tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", transaction.NewFeeQuote()))
+				assert.NoError(t, tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", legacyDefaultFeeQuote()))
 				return tx
 			}(),
 			expFees: &transaction.TxFees{
@@ -1028,7 +1028,7 @@ func Test_EstimateFeesPaid(t *testing.T) {
 					0, "76a91455b61be43392125d127f1780fb038437cd67ef9c88ac", 1000))
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 100))
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 100))
-				tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", transaction.NewFeeQuote())
+				tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", legacyDefaultFeeQuote())
 				return tx
 			}(),
 			expFees: &transaction.TxFees{
@@ -1053,7 +1053,7 @@ func Test_EstimateFeesPaid(t *testing.T) {
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 100))
 				assert.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 100))
 				assert.NoError(t, tx.AddOpReturnOutput(make([]byte, 0x64)))
-				tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", transaction.NewFeeQuote())
+				tx.ChangeToAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", legacyDefaultFeeQuote())
 				return tx
 			}(),
 			expFees: &transaction.TxFees{
@@ -1070,7 +1070,7 @@ func Test_EstimateFeesPaid(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			fee := transaction.NewFeeQuote()
+			fee := legacyDefaultFeeQuote()
 			resp, err := test.tx.EstimateFeesPaid(fee)
 			assert.NoError(t, err)
 			assert.Equal(t, test.expFees, resp)
@@ -1100,7 +1100,7 @@ func TestTx_EstimateFeesPaidTotal(t *testing.T) {
 				assert.NoError(t, tx.PayToAddress("mxAoAyZFXX6LZBWhoam3vjm6xt9NxPQ15f", 500))
 				return tx
 			}(),
-			fees:    transaction.NewFeeQuote(),
+			fees:    legacyDefaultFeeQuote(),
 			expFees: 96,
 		}, "Transaction with one input 4 Outputs should return 147": {
 			tx: func() *transaction.Tx {
@@ -1117,7 +1117,7 @@ func TestTx_EstimateFeesPaidTotal(t *testing.T) {
 				assert.NoError(t, tx.PayToAddress("mxAoAyZFXX6LZBWhoam3vjm6xt9NxPQ15f", 500))
 				return tx
 			}(),
-			fees:    transaction.NewFeeQuote(),
+			fees:    legacyDefaultFeeQuote(),
 			expFees: 147,
 		},
 	}
