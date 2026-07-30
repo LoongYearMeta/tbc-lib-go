@@ -195,7 +195,7 @@ func TestTx_Change(t *testing.T) {
 		assert.Equal(t, uint64(3999888), tx.Outputs[0].Satoshis)
 	})
 
-	t.Run("spend entire utxo - multi payouts - expected fee", func(t *testing.T) {
+	t.Run("spend entire utxo - multi payouts - missing fee is rejected", func(t *testing.T) {
 		tx := transaction.NewTx()
 		assert.NotNil(t, tx)
 
@@ -213,23 +213,13 @@ func TestTx_Change(t *testing.T) {
 		assert.NoError(t, err)
 
 		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", legacyDefaultFeeQuote())
-		assert.NoError(t, err)
-
-		var wif *WIF
-		wif, err = DecodeWIF("L3MhnEn1pLWcggeYLk9jdkvA2wUK1iWwwrGkBbgQRqv6HPCdRxuw")
-		assert.NoError(t, err)
-		assert.NotNil(t, wif)
-
-		err = tx.FillAllInputs(context.Background(), &unlocker.Getter{PrivateKey: wif.PrivKey})
-		assert.NoError(t, err)
-
-		assert.Equal(t, "01000000010b94a1ef0fb352aa2adc54207ce47ba55d5a1c1609afda58fe9520e472299107000000006a47304402206bbb4b23349bdf86e6fbc9067226e9a7b15c977fa530999b39cd0a6d9c83360d02202dd8ffdc610e58b3fc92b44400d99e38c78866765f31acb40d98007a52e7a826412102c8803fdd437d902f08e3c2344cb33065c99d7c99982018ff9f7219c3dd352ff0ffffffff0240420f00000000001976a914b6aa34534d2b11e66b438c7525f819aee01e397c88acc0c62d00000000001976a914b6aa34534d2b11e66b438c7525f819aee01e397c88ac00000000", tx.String())
+		assert.ErrorIs(t, err, transaction.ErrInsufficientInputs)
 
 		assert.Equal(t, uint64(1000000), tx.Outputs[0].Satoshis)
 		assert.Equal(t, uint64(3000000), tx.Outputs[1].Satoshis)
 	})
 
-	t.Run("spend entire utxo - multi payouts - incorrect fee", func(t *testing.T) {
+	t.Run("spend entire utxo - multi payouts - insufficient fee is rejected", func(t *testing.T) {
 		tx := transaction.NewTx()
 		assert.NotNil(t, tx)
 
@@ -247,19 +237,7 @@ func TestTx_Change(t *testing.T) {
 		assert.NoError(t, err)
 
 		err = tx.ChangeToAddress("mwV3YgnowbJJB3LcyCuqiKpdivvNNFiK7M", legacyDefaultFeeQuote())
-		assert.NoError(t, err)
-
-		var wif *WIF
-		wif, err = DecodeWIF("L3MhnEn1pLWcggeYLk9jdkvA2wUK1iWwwrGkBbgQRqv6HPCdRxuw")
-		assert.NoError(t, err)
-		assert.NotNil(t, wif)
-
-		err = tx.FillAllInputs(context.Background(), &unlocker.Getter{PrivateKey: wif.PrivKey})
-		assert.NoError(t, err)
-
-		assert.Equal(t, "01000000010b94a1ef0fb352aa2adc54207ce47ba55d5a1c1609afda58fe9520e472299107000000006b483045022100fd07316603e9abf393e695192e8ce1e7f808d2735cc57039109a2210ad32d9a7022000e301e2a988b23ab3872b041df8b6eb0315238e0918944cbaf8b6abdde75cac412102c8803fdd437d902f08e3c2344cb33065c99d7c99982018ff9f7219c3dd352ff0ffffffff023b420f00000000001976a914b6aa34534d2b11e66b438c7525f819aee01e397c88acc0c62d00000000001976a914b6aa34534d2b11e66b438c7525f819aee01e397c88ac00000000", tx.String())
-
-		// todo: expected the pay-to Inputs to change based on the fee :P
+		assert.ErrorIs(t, err, transaction.ErrInsufficientInputs)
 
 		assert.Equal(t, uint64(999995), tx.Outputs[0].Satoshis)
 		assert.Equal(t, uint64(3000000), tx.Outputs[1].Satoshis)
@@ -322,7 +300,7 @@ func TestTx_ChangeToOutput(t *testing.T) {
 			fees:            legacyDefaultFeeQuote(),
 			expOutputTotal:  1000,
 			expChangeOutput: 1000,
-			err:             nil,
+			err:             transaction.ErrInsufficientInputs,
 		}, "change to add should add change to output": {
 			tx: func() *transaction.Tx {
 				tx := transaction.NewTx()

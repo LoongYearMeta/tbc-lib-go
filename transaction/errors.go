@@ -4,16 +4,17 @@ import "github.com/pkg/errors"
 
 // General errors.
 var (
-	ErrInvalidTxID          = errors.New("invalid TxID")
-	ErrTxNil                = errors.New("tx is nil")
-	ErrTxTooShort           = errors.New("too short to be a tx - even an empty tx has 10 bytes")
+	ErrInvalidTxID = errors.New("invalid TxID")
+	ErrTxNil       = errors.New("tx is nil")
+	ErrTxTooShort  = errors.New("too short to be a tx - even an empty tx has 10 bytes")
 	// ErrNLockTimeLength is kept for compatibility; it is not returned from NewTxFromBytes
 	// when the buffer merely has trailing bytes after a valid tx (those are ignored).
-	ErrNLockTimeLength = errors.New("nLockTime length must be 4 bytes long")
-	ErrEmptyValues          = errors.New("empty value or values passed, all arguments are required and cannot be empty")
-	ErrUnsupportedScript    = errors.New("non-P2PKH input used in the tx - unsupported")
-	ErrInvalidScriptType    = errors.New("invalid script type")
-	ErrNoUnlocker           = errors.New("unlocker not supplied")
+	ErrNLockTimeLength   = errors.New("nLockTime length must be 4 bytes long")
+	ErrEmptyValues       = errors.New("empty value or values passed, all arguments are required and cannot be empty")
+	ErrUnsupportedScript = errors.New("non-P2PKH input used in the tx - unsupported")
+	ErrInvalidScriptType = errors.New("invalid script type")
+	ErrNoUnlocker        = errors.New("unlocker not supplied")
+	ErrAmountOverflow    = errors.New("transaction amount sum overflow")
 )
 
 // Sentinel errors reported by inputs.
@@ -46,6 +47,8 @@ var (
 	ErrFeeTypeNotFound  = errors.New("feetype not found")
 	ErrFeeQuoteNotInit  = errors.New("feeQuote has not been initialised, call NewFeeQuote()")
 	ErrUnknownFeeType   = errors.New("unknown fee type")
+	ErrInvalidFee       = errors.New("fee inputs must not be negative")
+	ErrFeeOverflow      = errors.New("fee calculation overflow")
 )
 
 // Sentinel errors reported by Fund

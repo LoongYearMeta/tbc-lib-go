@@ -2,9 +2,10 @@ package transaction
 
 import (
 	"fmt"
+	"math/bits"
 
-	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 )
 
 // estimateSizeLikeJS 对齐 tbc-lib-js Transaction._estimateSize：
@@ -47,18 +48,48 @@ func (tx *Tx) AdjustImplicitFeeToTarget(targetFee int) error {
 	if len(tx.Outputs) == 0 {
 		return nil
 	}
-	in := tx.TotalInputSatoshis()
-	out := tx.TotalOutputSatoshis()
-	oldFee := int(in - out)
-	delta := targetFee - oldFee
-	if delta == 0 {
+	if targetFee < 0 {
+		return ErrInvalidFee
+	}
+
+	in, err := tx.TotalInputSatoshisChecked()
+	if err != nil {
+		return err
+	}
+	out, err := tx.TotalOutputSatoshisChecked()
+	if err != nil {
+		return err
+	}
+	if in < out {
+		return ErrInsufficientInputs
+	}
+
+	oldFee := in - out
+	target := uint64(targetFee)
+	if target == oldFee {
 		return nil
 	}
+
 	last := len(tx.Outputs) - 1
-	newSat := int64(tx.Outputs[last].Satoshis) - int64(delta)
-	if newSat <= int64(DustLimit) {
-		return fmt.Errorf("tbc: adjust implicit fee: change would be dust (delta=%d, targetFee=%d, oldFee=%d)", delta, targetFee, oldFee)
+	current := tx.Outputs[last].Satoshis
+	var newSat uint64
+	if target > oldFee {
+		delta := target - oldFee
+		if current < delta {
+			return ErrInsufficientInputs
+		}
+		newSat = current - delta
+	} else {
+		delta := oldFee - target
+		var carry uint64
+		newSat, carry = bits.Add64(current, delta, 0)
+		if carry != 0 {
+			return ErrAmountOverflow
+		}
 	}
-	tx.Outputs[last].Satoshis = uint64(newSat)
+	if newSat < DustLimit {
+		return fmt.Errorf("tbc: adjust implicit fee: change would be dust (targetFee=%d, oldFee=%d)", targetFee, oldFee)
+	}
+	tx.Outputs[last].Satoshis = newSat
 	return nil
 }

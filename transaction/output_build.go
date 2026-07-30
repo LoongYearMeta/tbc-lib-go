@@ -4,13 +4,14 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"math/bits"
 
 	"github.com/LoongYearMeta/tbc-lib-go/bip32"
 	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 	"github.com/pkg/errors"
 
-	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 )
 
 // newOutputFromBytes returns a transaction Output from the bytes provided
@@ -43,6 +44,19 @@ func (tx *Tx) TotalOutputSatoshis() (total uint64) {
 		total += o.Satoshis
 	}
 	return
+}
+
+// TotalOutputSatoshisChecked returns the output sum or ErrAmountOverflow.
+func (tx *Tx) TotalOutputSatoshisChecked() (uint64, error) {
+	var total uint64
+	for _, output := range tx.Outputs {
+		next, carry := bits.Add64(total, output.Satoshis, 0)
+		if carry != 0 {
+			return 0, ErrAmountOverflow
+		}
+		total = next
+	}
+	return total, nil
 }
 
 // AddP2PKHOutputFromPubKeyHashStr makes an output to a PKH with a value.

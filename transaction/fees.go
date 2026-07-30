@@ -3,6 +3,7 @@ package transaction
 import (
 	"encoding/json"
 	"fmt"
+	"math/bits"
 	"sync"
 	"time"
 )
@@ -128,7 +129,7 @@ type FeeQuote struct {
 // If you are only getting quotes from one miner you can use this directly
 // instead of using the NewFeeQuotes() method which is for storing multiple miner quotes.
 //
-//  fq := NewFeeQuote()
+//	fq := NewFeeQuote()
 //
 // The fees have an expiry time which, when initially setup, has an
 // expiry of now.UTC. This allows you to check for fq.Expired() and if true
@@ -139,31 +140,32 @@ type FeeQuote struct {
 //
 // A basic example of usage is shown below:
 //
-//  func Fee(ft tbc.FeeType) *tbc.Fee{
-//     // you would not call this every time - this is just an example
-//     // you'd call this at app startup and store it / pass to a struct
-//     fq := NewFeeQuote()
+//	func Fee(ft tbc.FeeType) *tbc.Fee{
+//	   // you would not call this every time - this is just an example
+//	   // you'd call this at app startup and store it / pass to a struct
+//	   fq := NewFeeQuote()
 //
-//     // fq setup with defaultFees
-//     if !fq.Expired() {
-//        // not expired, just return fee we have cached
-//        return fe.Fee(ft)
-//     }
+//	   // fq setup with defaultFees
+//	   if !fq.Expired() {
+//	      // not expired, just return fee we have cached
+//	      return fe.Fee(ft)
+//	   }
 //
-//     // cache expired, fetch new quotes
-//     var stdFee *tbc.Fee
-//     var dataFee *tbc.Fee
+//	   // cache expired, fetch new quotes
+//	   var stdFee *tbc.Fee
+//	   var dataFee *tbc.Fee
 //
-//     // fetch quotes from MAPI server
+//	   // fetch quotes from MAPI server
 //
-//     fq.AddQuote(tbc.FeeTypeStandard, stdFee)
-//     fq.AddQuote(tbc.FeeTypeData, dataFee)
+//	   fq.AddQuote(tbc.FeeTypeStandard, stdFee)
+//	   fq.AddQuote(tbc.FeeTypeData, dataFee)
 //
-//     // MAPI returns a quote expiry
-//     exp, _ := time.Parse(time.RFC3339, resp.Quote.ExpirationTime)
-//     fq.UpdateExpiry(exp)
-//     return fe.Fee(ft)
-//  }
+//	   // MAPI returns a quote expiry
+//	   exp, _ := time.Parse(time.RFC3339, resp.Quote.ExpirationTime)
+//	   fq.UpdateExpiry(exp)
+//	   return fe.Fee(ft)
+//	}
+//
 // It will set the expiry time to now.UTC which when expires
 // will indicate that new quotes should be fetched from a MAPI server.
 func NewFeeQuote() *FeeQuote {
@@ -226,28 +228,29 @@ func (f *FeeQuote) Expired() bool {
 
 // MarshalJSON will convert the FeeQuote to a json object
 // with the format as shown:
-//  {
-//	 "data": {
-//		 "miningFee": {
-//			 "satoshis": 5,
-//			 "bytes": 2
+//
+//	 {
+//		 "data": {
+//			 "miningFee": {
+//				 "satoshis": 5,
+//				 "bytes": 2
+//			 },
+//			 "relayFee": {
+//				 "satoshis": 8,
+//				 "bytes": 4
+//			 }
 //		 },
-//		 "relayFee": {
-//			 "satoshis": 8,
-//			 "bytes": 4
-//		 }
-//	 },
-//	 "standard": {
-//		 "miningFee": {
-//			 "satoshis": 100,
-//			 "bytes": 10
-//		 },
-//		 "relayFee": {
-//			 "satoshis": 10,
-//			 "bytes": 5
+//		 "standard": {
+//			 "miningFee": {
+//				 "satoshis": 100,
+//				 "bytes": 10
+//			 },
+//			 "relayFee": {
+//				 "satoshis": 10,
+//				 "bytes": 5
+//			 }
 //		 }
 //	 }
-//  }
 func (f *FeeQuote) MarshalJSON() ([]byte, error) {
 	return json.Marshal(f.fees)
 }
@@ -276,6 +279,42 @@ func (f *FeeQuote) UnmarshalJSON(body []byte) error {
 type FeeUnit struct {
 	Satoshis int `json:"satoshis"` // Fee in satoshis of the amount of Bytes
 	Bytes    int `json:"bytes"`    // Number of bytes that the Fee covers
+}
+
+// CeilFeeForBytes calculates max(minimum, ceil(sizeBytes * satoshisPerKB / 1000))
+// with checked arithmetic.
+func CeilFeeForBytes(sizeBytes int, satoshisPerKB, minimum uint64) (uint64, error) {
+	if sizeBytes < 0 {
+		return 0, ErrInvalidFee
+	}
+
+	hi, lo := bits.Mul64(uint64(sizeBytes), satoshisPerKB)
+	if hi != 0 || lo > ^uint64(0)-999 {
+		return 0, ErrFeeOverflow
+	}
+
+	fee := (lo + 999) / 1000
+	if fee < minimum {
+		fee = minimum
+	}
+	return fee, nil
+}
+
+func miningFeeRatePerKB(mining FeeUnit) (uint64, error) {
+	if mining.Satoshis < 0 {
+		return 0, ErrInvalidFee
+	}
+
+	feeBytes := mining.Bytes
+	if feeBytes <= 0 {
+		feeBytes = 1000
+	}
+
+	hi, lo := bits.Mul64(uint64(mining.Satoshis), 1000)
+	if hi != 0 {
+		return 0, ErrFeeOverflow
+	}
+	return lo / uint64(feeBytes), nil
 }
 
 // CeilMiningFeeFromEstimatedBytes returns ceil(estimatedTxBytes * feePerKb / 1000), matching

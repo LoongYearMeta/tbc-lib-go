@@ -5,8 +5,11 @@ import (
 )
 
 const (
-	// DustLimit is the current minimum txo output accepted by miners.
-	DustLimit = 1
+	// NodeDustLimit is the consensus/policy dust floor used by the TBC node.
+	NodeDustLimit uint64 = 10
+
+	// DustLimit is the conservative SDK threshold for ordinary change outputs.
+	DustLimit uint64 = 42
 )
 
 // ChangeToAddress calculates the amount of fees needed to cover the transaction
@@ -21,7 +24,8 @@ func (tx *Tx) ChangeToAddress(addr string, f *FeeQuote) error {
 }
 
 // ChangeWithScript calculates the amount of fees needed to cover the transaction
-//  and adds the leftover change in a new output using the script provided.
+//
+//	and adds the leftover change in a new output using the script provided.
 func (tx *Tx) ChangeWithScript(s *script.Script, f *FeeQuote) error {
 	if _, _, err := tx.change(f, &changeOutput{
 		lockingScript: s,
@@ -57,8 +61,14 @@ type changeOutput struct {
 // txFees = ceil(estimateSizeLikeJS * feePerKb / 1000)，feePerKb = MiningFee.Satoshis*1000/MiningFee.Bytes；
 // 新建找零时 estimate 含即将写入的找零输出脚本（与 JS 临时 0 sat 找零等价）。
 func (tx *Tx) change(f *FeeQuote, output *changeOutput) (uint64, bool, error) {
-	inputAmount := tx.TotalInputSatoshis()
-	outputAmount := tx.TotalOutputSatoshis()
+	inputAmount, err := tx.TotalInputSatoshisChecked()
+	if err != nil {
+		return 0, false, err
+	}
+	outputAmount, err := tx.TotalOutputSatoshisChecked()
+	if err != nil {
+		return 0, false, err
+	}
 	if inputAmount < outputAmount {
 		return 0, false, ErrInsufficientInputs
 	}
@@ -76,9 +86,20 @@ func (tx *Tx) change(f *FeeQuote, output *changeOutput) (uint64, bool, error) {
 	} else {
 		est = estimateSizeLikeJS(tx, nil)
 	}
-	txFees := CeilMiningFeeFromEstimatedBytes(est, stdFee.MiningFee)
+	satoshisPerKB, err := miningFeeRatePerKB(stdFee.MiningFee)
+	if err != nil {
+		return 0, false, err
+	}
+	txFees, err := CeilFeeForBytes(est, satoshisPerKB, 0)
+	if err != nil {
+		return 0, false, err
+	}
 
-	if available <= txFees || available-txFees <= uint64(DustLimit) {
+	if available < txFees {
+		return 0, false, ErrInsufficientInputs
+	}
+
+	if available-txFees < DustLimit {
 		return 0, false, nil
 	}
 

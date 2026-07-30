@@ -6,12 +6,13 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"math/bits"
 
 	"github.com/LoongYearMeta/tbc-lib-go/crypto"
 	"github.com/pkg/errors"
 
-	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/encoding"
+	"github.com/LoongYearMeta/tbc-lib-go/script"
 	"github.com/LoongYearMeta/tbc-lib-go/transaction/sighash"
 )
 
@@ -54,6 +55,19 @@ func (tx *Tx) TotalInputSatoshis() (total uint64) {
 		total += in.PreviousTxSatoshis
 	}
 	return
+}
+
+// TotalInputSatoshisChecked returns the input sum or ErrAmountOverflow.
+func (tx *Tx) TotalInputSatoshisChecked() (uint64, error) {
+	var total uint64
+	for _, in := range tx.Inputs {
+		next, carry := bits.Add64(total, in.PreviousTxSatoshis, 0)
+		if carry != 0 {
+			return 0, ErrAmountOverflow
+		}
+		total = next
+	}
+	return total, nil
 }
 
 func (tx *Tx) addInput(input *Input) {
@@ -138,25 +152,26 @@ func (tx *Tx) FromUTXOs(utxos ...*UTXO) error {
 // If insufficient utxos are provided from the UTXOGetterFunc, a tbc.ErrInsufficientFunds is returned.
 //
 // Example usage:
-//    if err := tx.Fund(ctx, tbc.NewFeeQuote(), func(ctx context.Context, deficit satoshis) ([]*tbc.UTXO, error) {
-//        utxos := make([]*tbc.UTXO, 0)
-//        for _, f := range funds {
-//            deficit -= satoshis
-//            utxos := append(utxos, &tbc.UTXO{
-//                TxID: f.TxID,
-//                Vout: f.Vout,
-//                LockingScript: f.Script,
-//                Satoshis: f.Satoshis,
-//            })
-//            if deficit == 0 {
-//                return utxos, nil
-//            }
-//        }
-//        return nil, tbc.ErrNoUTXO
-//    }); err != nil {
-//        if errors.Is(err, tbc.ErrInsufficientFunds) { /* handle */ }
-//        return err
-//    }
+//
+//	if err := tx.Fund(ctx, tbc.NewFeeQuote(), func(ctx context.Context, deficit satoshis) ([]*tbc.UTXO, error) {
+//	    utxos := make([]*tbc.UTXO, 0)
+//	    for _, f := range funds {
+//	        deficit -= satoshis
+//	        utxos := append(utxos, &tbc.UTXO{
+//	            TxID: f.TxID,
+//	            Vout: f.Vout,
+//	            LockingScript: f.Script,
+//	            Satoshis: f.Satoshis,
+//	        })
+//	        if deficit == 0 {
+//	            return utxos, nil
+//	        }
+//	    }
+//	    return nil, tbc.ErrNoUTXO
+//	}); err != nil {
+//	    if errors.Is(err, tbc.ErrInsufficientFunds) { /* handle */ }
+//	    return err
+//	}
 func (tx *Tx) Fund(ctx context.Context, fq *FeeQuote, next UTXOGetterFunc) error {
 	deficit, err := tx.estimateDeficit(fq)
 	if err != nil {

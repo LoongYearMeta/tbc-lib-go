@@ -3,12 +3,63 @@ package transaction
 import (
 	"encoding/json"
 	"errors"
+	"math"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestCeilFeeForBytesBoundaries(t *testing.T) {
+	tests := []struct {
+		name             string
+		sizeBytes        int
+		satoshisPerKB    uint64
+		minimum          uint64
+		expectedSatoshis uint64
+	}{
+		{
+			name:             "999 bytes is raised to the minimum",
+			sizeBytes:        999,
+			satoshisPerKB:    80,
+			minimum:          80,
+			expectedSatoshis: 80,
+		},
+		{
+			name:             "1000 bytes is exactly the minimum",
+			sizeBytes:        1000,
+			satoshisPerKB:    80,
+			minimum:          80,
+			expectedSatoshis: 80,
+		},
+		{
+			name:             "1001 bytes rounds up",
+			sizeBytes:        1001,
+			satoshisPerKB:    80,
+			minimum:          80,
+			expectedSatoshis: 81,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := CeilFeeForBytes(test.sizeBytes, test.satoshisPerKB, test.minimum)
+			assert.NoError(t, err)
+			assert.Equal(t, test.expectedSatoshis, got)
+		})
+	}
+
+	t.Run("negative size is rejected", func(t *testing.T) {
+		_, err := CeilFeeForBytes(-1, 80, 80)
+		assert.ErrorIs(t, err, ErrInvalidFee)
+	})
+
+	t.Run("multiplication overflow is rejected", func(t *testing.T) {
+		_, err := CeilFeeForBytes(math.MaxInt, math.MaxUint64, 80)
+		assert.True(t, errors.Is(err, ErrFeeOverflow))
+	})
+}
 
 func TestExtractDataFee(t *testing.T) {
 	t.Run("get valid data fee", func(t *testing.T) {

@@ -106,10 +106,12 @@ var _ = func() {
 	_ = tbc.NewTxFromStream
 	_ = tbc.NewFeeQuote
 	_ = tbc.NewFeeQuotes
+	_ = tbc.CeilFeeForBytes
 	_ = tbc.CeilMiningFeeFromEstimatedBytes
 	_ = tbc.IsValidTxID
 
 	// transaction constants
+	_ = tbc.NodeDustLimit
 	_ = tbc.DustLimit
 	_ = tbc.MaxTxInSequenceNum
 	_ = tbc.MaxPrevOutIndex
@@ -129,6 +131,7 @@ var _ = func() {
 	_ = tbc.ErrUnsupportedScript
 	_ = tbc.ErrInvalidScriptType
 	_ = tbc.ErrNoUnlocker
+	_ = tbc.ErrAmountOverflow
 	_ = tbc.ErrInputNoExist
 	_ = tbc.ErrInputTooShort
 	_ = tbc.ErrOutputNoExist
@@ -141,6 +144,8 @@ var _ = func() {
 	_ = tbc.ErrFeeTypeNotFound
 	_ = tbc.ErrFeeQuoteNotInit
 	_ = tbc.ErrUnknownFeeType
+	_ = tbc.ErrInvalidFee
+	_ = tbc.ErrFeeOverflow
 	_ = tbc.ErrNoUTXO
 	_ = tbc.ErrInsufficientFunds
 

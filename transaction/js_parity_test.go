@@ -64,3 +64,17 @@ func TestAdjustImplicitFeeToTarget(t *testing.T) {
 	assert.Equal(t, uint64(50), tx.TotalInputSatoshis()-tx.TotalOutputSatoshis())
 	assert.Equal(t, uint64(950), tx.Outputs[len(tx.Outputs)-1].Satoshis)
 }
+
+func TestAdjustImplicitFeeToTargetAllowsSDKDustBoundary(t *testing.T) {
+	tx := transaction.NewTx()
+	require.NoError(t, tx.From(
+		"a4c76f8a7c05a91dcf5699b95b54e856298e50c1ceca9a8a5569c8532c500c11",
+		0, "76a91455b61be43392125d127f1780fb038437cd67ef9c88ac", 1000,
+	))
+	require.NoError(t, tx.AddP2PKHOutputFromAddress("mtestD3vRB7AoYWK2n6kLdZmAMLbLhDsLr", 800))
+
+	require.NoError(t, tx.AdjustImplicitFeeToTarget(958))
+
+	assert.Equal(t, transaction.DustLimit, tx.Outputs[0].Satoshis)
+	assert.Equal(t, uint64(958), tx.TotalInputSatoshis()-tx.TotalOutputSatoshis())
+}

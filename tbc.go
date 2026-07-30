@@ -84,12 +84,14 @@ var (
 	NewTxFromStream                 = transaction.NewTxFromStream
 	NewFeeQuote                     = transaction.NewFeeQuote
 	NewFeeQuotes                    = transaction.NewFeeQuotes
+	CeilFeeForBytes                 = transaction.CeilFeeForBytes
 	CeilMiningFeeFromEstimatedBytes = transaction.CeilMiningFeeFromEstimatedBytes
 	IsValidTxID                     = transaction.IsValidTxID
 )
 
 // constants
 const (
+	NodeDustLimit             = transaction.NodeDustLimit
 	DustLimit                 = transaction.DustLimit
 	MaxTxInSequenceNum        = transaction.MaxTxInSequenceNum
 	MaxPrevOutIndex           = transaction.MaxPrevOutIndex
@@ -111,6 +113,7 @@ var (
 	ErrUnsupportedScript     = transaction.ErrUnsupportedScript
 	ErrInvalidScriptType     = transaction.ErrInvalidScriptType
 	ErrNoUnlocker            = transaction.ErrNoUnlocker
+	ErrAmountOverflow        = transaction.ErrAmountOverflow
 	ErrInputNoExist          = transaction.ErrInputNoExist
 	ErrInputTooShort         = transaction.ErrInputTooShort
 	ErrOutputNoExist         = transaction.ErrOutputNoExist
@@ -123,6 +126,8 @@ var (
 	ErrFeeTypeNotFound       = transaction.ErrFeeTypeNotFound
 	ErrFeeQuoteNotInit       = transaction.ErrFeeQuoteNotInit
 	ErrUnknownFeeType        = transaction.ErrUnknownFeeType
+	ErrInvalidFee            = transaction.ErrInvalidFee
+	ErrFeeOverflow           = transaction.ErrFeeOverflow
 	ErrNoUTXO                = transaction.ErrNoUTXO
 	ErrInsufficientFunds     = transaction.ErrInsufficientFunds
 )
