@@ -46,3 +46,4 @@ vendor/
 .aider*
 CLAUDE.md
 docs/superpowers/
+.worktrees/
