@@ -10,6 +10,11 @@ const (
 
 	// DustLimit is the conservative SDK threshold for ordinary change outputs.
 	DustLimit uint64 = 42
+
+	// MinimumTransactionFee is the node's absolute relay floor. Proportional
+	// fee quotes can otherwise produce a fee below 80 satoshis for small
+	// transactions, which testnet rejects with "insufficient priority".
+	MinimumTransactionFee uint64 = 80
 )
 
 // ChangeToAddress calculates the amount of fees needed to cover the transaction
@@ -90,7 +95,7 @@ func (tx *Tx) change(f *FeeQuote, output *changeOutput) (uint64, bool, error) {
 	if err != nil {
 		return 0, false, err
 	}
-	txFees, err := CeilFeeForBytes(est, satoshisPerKB, 0)
+	txFees, err := CeilFeeForBytes(est, satoshisPerKB, MinimumTransactionFee)
 	if err != nil {
 		return 0, false, err
 	}

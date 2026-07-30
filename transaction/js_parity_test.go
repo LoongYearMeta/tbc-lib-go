@@ -22,9 +22,9 @@ func TestJSEstimateSize_oneP2PKHInputOneP2PKHOutput(t *testing.T) {
 	assert.Equal(t, 224, tx.JSEstimateSize())
 }
 
-// Golden: change() 隐式手续费 = ceil(estimateSize * feePerKb / 1000)（与 JS _estimateFee 一致），
-// 此处仅 1 输入、将新增 1 笔找零，estimate 含找零脚本（与 JS 临时 0 sat 输出一致）。
-func TestChangeToAddress_implicitFee_matchesCeilJSFormula(t *testing.T) {
+// Golden: change() 保留 JS 的按字节向上取整公式，但额外执行节点的 80 sat
+// 绝对最低费；否则这类小交易会被节点以 insufficient priority 拒绝。
+func TestChangeToAddress_implicitFee_usesNodeMinimum(t *testing.T) {
 	tx := transaction.NewTx()
 	require.NoError(t, tx.From(
 		"07912972e42095fe58daaf09161c5a5da57be47c2054dc2aaa52b30fefa1940b",
@@ -36,13 +36,14 @@ func TestChangeToAddress_implicitFee_matchesCeilJSFormula(t *testing.T) {
 
 	std, err := transaction.NewFeeQuote().Fee(transaction.FeeTypeStandard)
 	require.NoError(t, err)
-	// 224B，默认 100 sat/1000B（与 tbc-lib-js Transaction.FEE_PER_KB=100 对齐）→ ceil(224*100/1000)=23
+	// 224B，JS 比例公式得到 23 sat，节点最低费把它提升到 80 sat。
 	wantEst := 224
-	wantFee := transaction.CeilMiningFeeFromEstimatedBytes(wantEst, std.MiningFee)
+	proportionalFee := transaction.CeilMiningFeeFromEstimatedBytes(wantEst, std.MiningFee)
+	assert.Equal(t, uint64(23), proportionalFee)
 
 	fee := tx.TotalInputSatoshis() - tx.TotalOutputSatoshis()
-	assert.Equal(t, wantFee, fee)
-	assert.Equal(t, uint64(4000000)-wantFee, tx.Outputs[0].Satoshis)
+	assert.Equal(t, transaction.MinimumTransactionFee, fee)
+	assert.Equal(t, uint64(4000000)-transaction.MinimumTransactionFee, tx.Outputs[0].Satoshis)
 }
 
 // Golden: CeilMiningFeeFromEstimatedBytes 与 JS Math.ceil(size/1000 * feePerKb)；
